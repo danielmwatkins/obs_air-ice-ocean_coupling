@@ -3,7 +3,11 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - cartopy=0.21.1
+  - cartopy
+  - cdsapi
+  - esmpy
+  - xesmf
+  - jupyter
   - metpy=1.4.1
   - netcdf4=1.6.3
   - numpy=1.23.3
