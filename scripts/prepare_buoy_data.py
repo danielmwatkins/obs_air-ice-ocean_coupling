@@ -15,7 +15,7 @@ from drifter import standard_qc, interpolate_buoy_track, compute_velocity
 dataloc = '../data/adc_dn_tracks/'
 saveloc = '../data/interpolated_tracks/'
 begin = '2020-01-25 00:00'
-end = '2020-02-02 00:00'
+end = '2020-02-05 00:00'
 max_interval = '3H'
 min_coverage = 0.8 # Fraction of data required
 
