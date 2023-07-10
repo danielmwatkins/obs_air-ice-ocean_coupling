@@ -22,3 +22,8 @@ Components
 - potentially get shapefiles for coastlines; it would be good to have those on the overview plots too
 
 Current version makes a separate dataset for each variable. It's fairly trivial to make these into one, I just don't have time to do that today.
+
+## Analysis tasks and status
+### Maps
+1. Distributed Network Map. Indicate position of North Pole, lat/lon lines, distances in X/Y direction, and inset showing more distant buoys.
+2. Storm structure and sea ice concentration (large scale, showing the two storms).
