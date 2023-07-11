@@ -1,3 +1,5 @@
+"""Plots the zoomed in picutre with sea ice drift speed, wind speed, and MSL
+"""
 import xarray as xr
 import os
 import numpy as np
@@ -9,8 +11,10 @@ import sys
 #sys.path.append('../scripts/')
 import drifter
 
-era5_dataloc = '../../../data/era5/'
-buoy_dataloc = '../../../data/interpolated_tracks//'
+era5_dataloc = '../data/era5_regridded/'
+buoy_dataloc = '../data/interpolated_tracks/'
+
+# TBD add params: four dates to plot in a separate file, so that multiple figures can reference it
 
 ##### Load buoy data #####
 buoy_data = {}
@@ -62,30 +66,15 @@ df_v = pd.DataFrame({buoy: buoy_data[buoy]['v_stere'] for buoy in buoy_data})
 storm_track = pd.read_csv('../../../data/storm_track.csv', index_col=0, parse_dates=True).iloc[4:].dropna()    
 
 ##### Load ERA5 data #####
-variables = ['msl', 'u_950', 'v_950', 'q_925', 't_925']
+variables = ['msl', 'u10', 'v10']
 savename = '2020-01-25_2020-02-05'
+
 era5_data = {var: xr.open_dataset(era5_dataloc + 'era5_' + var + '_regridded_' + savename + '.nc') for var in variables}
 
 
-dwp = mcalc.dewpoint_from_specific_humidity(pressure = 925*units('hPa'),
-                                            temperature = era5_data['t_925']['t_925'].data * units('K'),
-                                            specific_humidity = era5_data['q_925']['q_925'].data * units('kg/kg'))
-
-theta_e = mcalc.equivalent_potential_temperature(pressure = 925 * units('hPa'),
-                                       temperature = era5_data['t_925']['t_925'].data * units('K'),
-                                       dewpoint = dwp)
-
-ds_dwp = xr.Dataset({'td': (('time', 'xc', 'yc'), dwp.magnitude)},
-                    coords=era5_data['t_925']['t_925'].coords)
-
-ds_theta = xr.Dataset({'theta_e': (('time', 'xc', 'yc'), theta_e.magnitude)},
-                    coords=era5_data['t_925']['t_925'].coords)
-
-era5_data['theta_925'] = ds_theta
-
 # Rotate U and V (could move this into the regridding section)
-u = era5_data['u_950']['u_950']
-v = era5_data['v_950']['v_950']
+u = era5_data['u10']['u10']
+v = era5_data['v10']['v10']
 lon = u['longitude'] + 45 # NSIDC xstere is rotated
 lat = v['latitude']
 ustere = u * np.cos(np.deg2rad(lon)) - v * np.sin(np.deg2rad(lon))    
@@ -95,7 +84,7 @@ era5_data['v_stere'] = xr.Dataset({'v_stere': vstere})
 era5_data['wind_speed'] = xr.Dataset({'wind_speed': 
                             np.sqrt(ustere**2 + vstere**2)})
 
-# 2x4 plot with wind speed
+# Colors for buoy groups
 west_buoys = ['2019P128', '2019P184', '2019P182', '2019P127']
 se_buoys = ['2019P155', '2019P123', '2019P112', '2019P113', '2019P114', '2019P22', '2019P119']
 far_se_buoys = ['2019P156', '2019P157']
@@ -110,23 +99,21 @@ pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
 fig, axs = pplt.subplots(height=4, nrows=1, ncols=4, share=True, spany=False)
-# these values are centered on the storm track
 zoom_plot_dates =  ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
 for date, ax in zip(zoom_plot_dates, axs):
-    x_dn = df_x.loc[date, '2019T66']/1e3
-    y_dn = df_y.loc[date, '2019T66']/1e3
-    x0 = storm_track.loc[date, 'x_stere'] # replace with storm track
-    y0 = storm_track.loc[date, 'y_stere']
+    x_dn = df_x.loc[date, '2019T66']
+    y_dn = df_y.loc[date, '2019T66']
     X = era5_data['msl']['x_stere'].data
     Y = era5_data['msl']['y_stere'].data
     idx_skip = 2
-    local_xu = ((X - x0)[::idx_skip, ::idx_skip])*1e-3
-    local_yv = ((Y - y0)[::idx_skip, ::idx_skip])*1e-3
+    local_xu = ((X - x_dn)[::idx_skip, ::idx_skip])*1e-3
+    local_yv = ((Y - y_dn)[::idx_skip, ::idx_skip])*1e-3
 
-    local_x = (X - x0)*1e-3
-    local_y = (Y - y0)*1e-3
-
+    local_x = (X - x_dn)*1e-3
+    local_y = (Y - y_dn)*1e-3
+    x_dn = x_dn*1e-3
+    y_dn = y_dn*1e-3
 
     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                 levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2)
@@ -171,8 +158,8 @@ for date, ax in zip(zoom_plot_dates, axs):
                   df_v.loc[date, buoy_set]*100,
                   scale=400, headwidth=4, c = color, zorder=6, width=1/250)
 
-    ax.plot(storm_track['x_stere']/1e3 - storm_track.loc[date, 'x_stere']/1e3,
-            storm_track['y_stere']/1e3 - storm_track.loc[date, 'y_stere']/1e3,
+    ax.plot(storm_track['x_stere']/1e3 - x_dn,
+            storm_track['y_stere']/1e3 - y_dn,
             color='gray', lw=1, zorder=0)
 
 ax.quiver(325,
