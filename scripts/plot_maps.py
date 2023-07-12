@@ -15,10 +15,11 @@ for f in os.listdir(dataloc):
 left = ['2019P128', '2019P184', '2019P182', '2019P127']
 right = ['2019P155', '2019P123', '2019P112', '2019P113', '2019P114', '2019P22', '2019P119']
 distant = ['2019P156', '2019P157']
+ahead = ['2019P22']
 l_sites = ['2019T67', '2019T65', '2019S94']
 co = ['2019T66']
 site_specs = {'2019T67': ('tab:blue', 's', 7),
-               '2019T65': ('gold', 's', 7),
+               '2019T65': ('powder blue', 's', 7),
                '2019S94': ('tab:green', 's', 7),
                '2019T66': ('tab:red', '*', 15)}
 
@@ -86,10 +87,10 @@ lon_x = list(np.array(lon_x))
 
 dn_buoys = [b for b in all_buoys if b not in left + right + distant]
 for idx in range(xylon.shape[1]):
-    ax0.plot(xylon[:,idx] - x0['2019T66'], xylat[:,idx] - y0['2019T66'], color='k', lw=0.5)
+    ax0.plot(xylon[:,idx] - x0['2019T66'], xylat[:,idx] - y0['2019T66'], color='k', alpha=0.5, lw=0.5)
 for idx in range(xylon.shape[0]):
     
-    ax0.plot(xylon[idx,:] - x0['2019T66'], xylat[idx,:] - y0['2019T66'], color='k', lw=0.5)
+    ax0.plot(xylon[idx,:] - x0['2019T66'], xylat[idx,:] - y0['2019T66'], color='k', alpha=0.5, lw=0.5)
 
 ax1 = ax0.inset(
     [-530, -530, 450, 450], transform='data', zoom=True, # Check if zoom lets you choose the corners
@@ -100,7 +101,7 @@ ax1 = ax0.inset(
 ax0.plot(df_x, df_y, marker='o', c='w', edgecolor='k', ms=3, edgewidth=0.5)
 ax1.plot(df_x[dn_buoys], df_y[dn_buoys], marker='o', c='w', edgecolor='k', ms=4, edgewidth=0.5)
 
-for group, color in zip([left, right, distant], ['lilac', 'powder blue', 'orange']):
+for group, color in zip([left, right, distant, ahead], ['lilac', 'gold', 'orange', 'gray']):
     ax0.plot(df_x[group], df_y[group], marker='o', c=color, edgecolor='k', ms=5, edgewidth=0.5)
 
 for buoy in site_specs:
@@ -119,7 +120,7 @@ ax1.format(xlim=(-55,45), ylim=(-55,45),
 h = []
 l = []
 for color, label, m in zip(
-    ['tab:red', 'tab:blue', 'gold', 'tab:green', 'w'],
+    ['tab:red', 'tab:blue', 'powder blue', 'tab:green', 'w'],
     ['CO', 'L1', 'L2', 'L3', 'P'],
     ['*', 's', 's', 's', 'o']):
     if label=='CO':

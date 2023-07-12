@@ -28,12 +28,12 @@ import sys
 #sys.path.append('../scripts/')
 import drifter
 
-era5_dataloc = '../../../data/era5/'
-buoy_dataloc = '../../../data/interpolated_tracks//'
+era5_dataloc = '../data/era5/'
+buoy_dataloc = '../data/interpolated_tracks//'
 
 ##### Load buoy data #####
 buoy_data = {}
-metadataloc = '../../../data/adc_dn_tracks/'
+metadataloc = '../data/adc_dn_tracks/'
 metadata = pd.read_csv(metadataloc + 'DN_buoy_list_v2.csv')
 metadata['filename'] = ['_'.join([x, str(y), z]) for 
                         x, y, z in zip(metadata['DN Station ID'],
@@ -110,12 +110,13 @@ era5_data['wind_speed'] = xr.Dataset({'wind_speed':
                             np.sqrt(ustere**2 + vstere**2)})
 
 # 2x4 plot with wind speed
-west_buoys = ['2019P128', '2019P184', '2019P182', '2019P127']
-se_buoys = ['2019P155', '2019P123', '2019P112', '2019P113', '2019P114', '2019P22', '2019P119']
-far_se_buoys = ['2019P156', '2019P157']
+left = ['2019P128', '2019P184', '2019P182', '2019P127']
+right = ['2019P155', '2019P123', '2019P112', '2019P113', '2019P114', '2019P22', '2019P119']
+distant = ['2019P156', '2019P157']
+ahead = ['2019P22']
 l_sites = ['2019T67', '2019T65', '2019S94']
 l_colors = {'2019T67': 'tab:blue',
-            '2019T65': 'tab:red',
+            '2019T65': 'powder blue',
             '2019S94': 'tab:green'}
 
 pplt.rc['title.bbox'] = True
@@ -163,14 +164,17 @@ for date, ax1, ax2 in zip(plot_dates, axs[0,:], axs[1,:]):
         z = 4
         c = 'w'
         m = 'o'
-        if buoy in west_buoys:
+        if buoy in left:
             c = 'lilac'
             m = 'o'
-        elif buoy in se_buoys:
+        elif buoy in right:
             c = 'gold'
             m = 'o'
-        elif buoy in far_se_buoys:
+        elif buoy in distant:
             c = 'orange'
+            m = 'o'
+        elif buoy in ahead:
+            c = 'gray'
             m = 'o'
         elif buoy in l_sites:
             c = l_colors[buoy]

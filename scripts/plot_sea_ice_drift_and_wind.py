@@ -18,7 +18,7 @@ buoy_dataloc = '../data/interpolated_tracks/'
 
 ##### Load buoy data #####
 buoy_data = {}
-metadataloc = '../../../data/adc_dn_tracks/'
+metadataloc = '../data/adc_dn_tracks/'
 metadata = pd.read_csv(metadataloc + 'DN_buoy_list_v2.csv')
 metadata['filename'] = ['_'.join([x, str(y), z]) for 
                         x, y, z in zip(metadata['DN Station ID'],
@@ -63,7 +63,7 @@ df_y = pd.DataFrame({buoy: buoy_data[buoy]['y_stere'] for buoy in buoy_data})
 df_u = pd.DataFrame({buoy: buoy_data[buoy]['u_stere'] for buoy in buoy_data})
 df_v = pd.DataFrame({buoy: buoy_data[buoy]['v_stere'] for buoy in buoy_data})
 
-storm_track = pd.read_csv('../../../data/storm_track.csv', index_col=0, parse_dates=True).iloc[4:].dropna()    
+storm_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True).iloc[4:].dropna()    
 
 ##### Load ERA5 data #####
 variables = ['msl', 'u10', 'v10']
