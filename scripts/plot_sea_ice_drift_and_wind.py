@@ -90,7 +90,7 @@ se_buoys = ['2019P155', '2019P123', '2019P112', '2019P113', '2019P114', '2019P22
 far_se_buoys = ['2019P156', '2019P157']
 l_sites = ['2019T67', '2019T65', '2019S94']
 l_colors = {'2019T67': 'tab:blue',
-            '2019T65': 'tab:red',
+            '2019T65': 'powder blue',
             '2019S94': 'tab:green'}
 
 pplt.rc['title.bbox'] = True
@@ -98,7 +98,7 @@ pplt.rc['title.bboxalpha'] = 1
 pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
-fig, axs = pplt.subplots(height=4, nrows=1, ncols=4, share=True, spany=False)
+fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False)
 zoom_plot_dates =  ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
 for date, ax in zip(zoom_plot_dates, axs):
@@ -120,7 +120,8 @@ for date, ax in zip(zoom_plot_dates, axs):
     
     ax.quiver(local_xu, local_yv,
               era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
-              era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip], scale=400)
+              era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip],
+              scale=300, width=1/400, headwidth=4, color='dark gray')
 
     ax.format(title=date, ylabel='Y (km)', xlabel='X (km)',
           #lltitle='$P_{min}$: ' + str(int(np.round(storm_track.loc[date, 'center_mslp']/100,0))) + ' hPa',
@@ -129,8 +130,8 @@ for date, ax in zip(zoom_plot_dates, axs):
          yticks=np.arange(-0.25e3, 0.26e3, 250), ytickminor=False)
     for buoy in buoy_data:
         if date in buoy_data[buoy].index:
-            z = 1
-            m = '.'
+            z = 4
+            m = 'o'
             if buoy in west_buoys:
                 c = 'lilac'
             elif buoy in se_buoys:
@@ -140,7 +141,7 @@ for date, ax in zip(zoom_plot_dates, axs):
             elif buoy in l_sites:
                 c = l_colors[buoy]
                 z = 5
-                m = '.'
+                m = 'o'
             else:
                 c='w'
             if buoy == '2019P22':
@@ -156,7 +157,13 @@ for date, ax in zip(zoom_plot_dates, axs):
                   df_y.loc[date, buoy_set]/1e3 - y_dn,
                   df_u.loc[date, buoy_set]*100,
                   df_v.loc[date, buoy_set]*100,
-                  scale=400, headwidth=4, c = color, zorder=6, width=1/250)
+                  scale=300, headwidth=4, c = 'k', zorder=6, width=1/250)
+
+#         ax.quiver(df_x.loc[date, buoy_set]/1e3  - x_dn,
+#                   df_y.loc[date, buoy_set]/1e3 - y_dn,
+#                   df_u.loc[date, buoy_set]*100,
+#                   df_v.loc[date, buoy_set]*100,
+#                   scale=400, headwidth=4, headlength=4, c = color, zorder=6, width=1/250)
 
     ax.plot(storm_track['x_stere']/1e3 - x_dn,
             storm_track['y_stere']/1e3 - y_dn,
@@ -167,6 +174,82 @@ ax.quiver(325,
           20,
           0,
           scale=400, headwidth=4, c = 'b', zorder=6, width=1/250)
-ax.text(250, -175, '20 m/s wind\n20 cm/s ice', c='b')
+ax.text(250, -175, '20 m/s wind\n 2 cm/s ice', c='b')
 fig.format(xreverse=False, yreverse=False, abc=True)
 fig.save('../figures/janfeb_storm_zoom_buoys.jpg', dpi=300)
+
+### DN scale
+fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False)
+zoom_plot_dates =  ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
+zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
+for date, ax in zip(zoom_plot_dates, axs):
+    x_dn = df_x.loc[date, '2019T66']
+    y_dn = df_y.loc[date, '2019T66']
+    X = era5_data['msl']['x_stere'].data
+    Y = era5_data['msl']['y_stere'].data
+    idx_skip = 2
+    local_xu = ((X - x_dn)[::idx_skip, ::idx_skip])*1e-3
+    local_yv = ((Y - y_dn)[::idx_skip, ::idx_skip])*1e-3
+
+    local_x = (X - x_dn)*1e-3
+    local_y = (Y - y_dn)*1e-3
+    x_dn = x_dn*1e-3
+    y_dn = y_dn*1e-3
+
+    ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
+                levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2)
+    
+    ax.quiver(local_xu, local_yv,
+              era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
+              era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip],
+              scale=300, width=1/400, headwidth=4, color='dark gray')
+
+    ax.format(title=date, ylabel='Y (km)', xlabel='X (km)',
+          #lltitle='$P_{min}$: ' + str(int(np.round(storm_track.loc[date, 'center_mslp']/100,0))) + ' hPa',
+         ylim=(-75, 75), xlim=(-75, 75),
+          xticks=np.arange(-70, 71, 25), xtickminor=False, xrotation=90,
+         yticks=np.arange(-70, 71, 25), ytickminor=False)
+    for buoy in buoy_data:
+        if date in buoy_data[buoy].index:
+            z = 4
+            m = 'o'
+            if buoy in west_buoys:
+                c = 'lilac'
+            elif buoy in se_buoys:
+                c = 'gold'
+            elif buoy in far_se_buoys:
+                c = 'orange'
+            elif buoy in l_sites:
+                c = l_colors[buoy]
+                z = 5
+                m = 'o'
+            else:
+                c='w'
+            if buoy == '2019P22':
+                c = 'gray'
+            ax.plot(buoy_data[buoy].loc[date, 'x_stere']/1e3 - x_dn,
+                    buoy_data[buoy].loc[date, 'y_stere']/1e3 - y_dn,
+                    edgecolor='k', edgewidth=0.5, marker=m, facecolor=c, zorder=z)
+#     for color, buoy_set in zip(['lilac', 'gold', 'orange',
+#                                 'tab:blue', 'tab:red', 'tab:green', 'gray'],
+#                                [west_buoys, se_buoys, far_se_buoys,
+#                                 ['2019T67'], ['2019T65'], ['2019S94'], ['2019P22']]):
+    buoy_set = [buoy for buoy in buoy_data]
+    ax.quiver(df_x.loc[date, buoy_set]/1e3  - x_dn,
+              df_y.loc[date, buoy_set]/1e3 - y_dn,
+              df_u.loc[date, buoy_set]*100,
+              df_v.loc[date, buoy_set]*100,
+              scale=300, headwidth=4, c = 'k', zorder=6, width=1/250)
+
+    ax.plot(storm_track['x_stere']/1e3 - x_dn,
+            storm_track['y_stere']/1e3 - y_dn,
+            color='gray', lw=1, zorder=0)
+
+ax.quiver(74,
+          -55,
+          20,
+          0,
+          scale=400, headwidth=4, c = 'b', zorder=6, width=1/250)
+ax.text(30, -60, '20 m/s wind\n 2 cm/s ice', c='b')
+fig.format(xreverse=False, yreverse=False, abc=True)
+fig.save('../figures/janfeb_storm_zoom_DN_buoys.jpg', dpi=300)

@@ -24,7 +24,7 @@ site_specs = {'2019T67': ('tab:blue', 's', 7),
 
 ##### Velocity time series plots ########
 ts = slice('2020-01-30 20:00', '2020-02-02 02:00')
-fig, axs = pplt.subplots(width=6, height=6, nrows=3, sharey=False)
+fig, axs = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
 for var, ax in zip(['u', 'v', 'speed'], axs):
     for b in buoy_data:
 
@@ -56,7 +56,7 @@ for var, ax in zip(['u', 'v', 'speed'], axs):
 
     ax.format(ylabel=var + ' (m/s)', xlabel='', xrotation=45, xformatter='%b %d %HZ',
              xlocator=1/2,
-              xminorlocator=1/6, xgridminor=True, suptitle='Drift velocity')
+              xminorlocator=1/6, xgridminor=True)#, suptitle='Drift velocity')
     
 zoom_plot_dates = ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
