@@ -423,3 +423,113 @@ def interpolate_buoy_track(buoy_df, xvar='longitude', yvar='latitude',
         df_new['latitude'] = np.round(lat, 5)
 
     return df_new
+
+
+
+
+def compute_strain_rate_components(buoys, data):
+    """Compute the four components of strain rate for each
+    date in data. Assumes velocity has already been calculated.
+    Expects "data" to be a dictionary with a dataframe for each
+    of the buoys in the list "buoys". The dataframes in "data"
+    should have columns "u", "v", "longitude", "latitude".
+
+    Output: dataframe with columns 'divergence', 'vorticity',
+             'pure_shear', 'normal_shear', 'maximum_shear_strain_rate',
+             'area', 'shape_flag'
+
+    Additional columns for the uncertainty will be added.
+    """
+    def check_order(buoys, date, data):
+        """Pass through. Right hand rule enforcement tbd"""
+        return buoys
+
+    def check_shape(buoys, date, data):
+        """Pass through. Return True if the shape is too skewed."""
+        return False
+
+    def polygon_area(X, Y):
+        """Compute area of polygon as a sum. Should use LAEA not PS here"""
+        s2 = 0.
+        N = len(X)
+        s1 = X[N-1]*Y[0] - X[0]*Y[N-1]
+        for i in range(N - 1):
+            s2 += X[i]*Y[i+1] - Y[i]*X[i+1]
+        return (s2 + s1)*0.5
+
+    def accel(X, U, A, sign):
+        """Computes spatial derivative of velocity for 
+        deformation."""
+        N = len(X)
+        sumvar = 0
+        s1 = (U[0] + U[N-1])*(X[0] - X[N-1])
+        for i in range(N - 1):
+            sumvar += (U[i+1] + U[i])*(X[i+1] - X[i])
+        return 1/(2*A) * (sumvar + s1) * sign
+
+    lon_data = pd.DataFrame({b: data[b]['longitude'] for b in buoys})
+    lat_data = pd.DataFrame({b: data[b]['latitude'] for b in buoys})
+    U_data = pd.DataFrame({b: data[b]['u'] for b in buoys})
+    V_data = pd.DataFrame({b: data[b]['v'] for b in buoys})
+
+    # Polar stereographic for velocity-based component
+    projIn = 'epsg:4326' # WGS 84 Ellipsoid
+    projOut = 'epsg:3413' # NSIDC North Polar Stereographic
+    transformer_ps = pyproj.Transformer.from_crs(projIn, projOut, always_xy=True)
+
+    projOut = 'epsg:6931' # NSIDC EASE 2.0 (for area calculation)
+    transformer_laea = pyproj.Transformer.from_crs(projIn, projOut, always_xy=True)
+    
+    X_data = U_data * np.nan
+    Y_data = U_data * np.nan
+    XA_data = U_data * np.nan
+    YA_data = U_data * np.nan
+    
+    for buoy in X_data.columns:
+        lon = lon_data[buoy].values
+        lat = lat_data[buoy].values
+
+        x, y = transformer_ps.transform(lon, lat)
+        X_data[buoy] = x
+        Y_data[buoy] = y
+        
+        x, y = transformer_laea.transform(lon, lat)
+        XA_data[buoy] = x
+        YA_data[buoy] = y
+    
+    
+    results = []
+    for date in X_data.index:
+        buoys = check_order(buoys, date, data)
+        flag = check_shape(buoys, date, data)
+        
+        X = X_data.loc[date, :]
+        Y = Y_data.loc[date, :]
+        XA = XA_data.loc[date, :]
+        YA = YA_data.loc[date, :]        
+        U = U_data.loc[date, :]
+        V = V_data.loc[date, :]
+        
+        A = polygon_area(XA, YA)
+            
+        dudx = accel(Y, U, A, 1)
+        dudy = accel(X, U, A, -1)
+        dvdx = accel(Y, V, A, 1)
+        dvdy = accel(X, V, A, -1)
+        
+        results.append([
+            dudx + dvdy, #div
+            dvdx - dudy, #vor
+            dudy + dvdx, #pure
+            dudx - dvdy, #normal
+            0.5*np.sqrt((dudx - dvdy)**2 + (dudy + dvdx)**2), #epsilon_ii
+            A,
+            flag
+        ])
+            
+    return pd.DataFrame(
+        np.vstack(results),
+        columns=['divergence', 'vorticity', 'pure_shear',
+                 'normal_shear', 'maximum_shear_strain_rate',
+                 'area', 'shape_flag'],
+        index=X_data.index)

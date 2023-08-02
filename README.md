@@ -21,9 +21,12 @@ Components
 - potentially get shapefile for february sea ice extent for plotting
 - potentially get shapefiles for coastlines; it would be good to have those on the overview plots too
 
-Current version makes a separate dataset for each variable. It's fairly trivial to make these into one, I just don't have time to do that today.
+Current version makes a separate dataset for each variable. Script can be customized with different start and end dates. It uses xESMF to re-grid the data to a 25-km polar stereographic grid. 
 
-## Analysis tasks and status
+## Plotting tasks and status
 ### Maps
-1. Distributed Network Map. Indicate position of North Pole, lat/lon lines, distances in X/Y direction, and inset showing more distant buoys.
-2. Storm structure and sea ice concentration (large scale, showing the two storms).
+1. Script TBD: Distributed Network Map. Indicate position of North Pole, lat/lon lines, distances in X/Y direction, and inset showing more distant buoys.
+2. Script TBD: Storm time series and sea ice concentration (large scale, showing the two storms).
+3. `plot_storm_system`: Makes the 4x2 plot that I like showing the side by side cases.
+4. Script TBD: Need to make a new version that plots the 3x3 Ola likes with the countours of wind speed plotted over it.
+5. 
