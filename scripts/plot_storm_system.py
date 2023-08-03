@@ -73,7 +73,7 @@ for buoy in buoy_data:
     buoy_data[buoy]['smoothed_v'] = buoy_df['v']
     buoy_data[buoy]['smoothed_speed'] = buoy_df['speed']
     
-storm_track = pd.read_csv('../../../data/storm_track.csv', index_col=0, parse_dates=True).iloc[4:].dropna()    
+storm_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True).iloc[4:].dropna()    
 
 ##### Load ERA5 data #####
 variables = ['msl', 'u_950', 'v_950', 'q_925', 't_925']
