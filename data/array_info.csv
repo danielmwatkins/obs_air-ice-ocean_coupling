@@ -1,0 +1,67 @@
+,buoyID,array_name,color,line_style,line_width,array_position
+0,2019P184,left_1,lilac,-,1,0
+1,2019P127,left_1,lilac,-,1,1
+2,2019P182,left_1,lilac,-,1,2
+3,2019P128,left_1,lilac,-,1,3
+4,2019P184,left_2,purple,-,1,0
+5,2019P124,left_2,purple,-,1,1
+6,2019O6,left_2,purple,-,1,2
+7,2019P127,left_2,purple,-,1,3
+8,2019O1,left_3,maroon,-,1,0
+9,2019P127,left_3,maroon,-,1,1
+10,2019O6,left_3,maroon,-,1,2
+11,2019P124,DN_1,k,-,1,0
+12,2019P125,DN_1,k,-,1,1
+13,2019P102,DN_1,k,-,1,2
+14,2019P198,DN_1,k,-,1,3
+15,2019P90,DN_2,k,--,1,0
+16,2019P91,DN_2,k,--,1,1
+17,2019P193,DN_2,k,--,1,2
+18,2019P196,DN_2,k,--,1,3
+19,2019P188,DN_3,k,-.,1,0
+20,2019P187,DN_3,k,-.,1,1
+21,2019P92,DN_3,k,-.,1,2
+22,2019P103,DN_3,k,-.,1,3
+23,2019P191,DN_4,k,:,1,0
+24,2019P148,DN_4,k,:,1,1
+25,2019P200,DN_4,k,:,1,2
+26,2019P195,DN_4,k,:,1,3
+27,2019O6,DN_5,k,-,2,0
+28,2019P203,DN_5,k,-,2,1
+29,2019T69,DN_5,k,-,2,2
+30,2019P105,DN_5,k,-,2,3
+31,2019T65,l_sites,tab:orange,-,1,0
+32,2019T67,l_sites,tab:orange,-,1,1
+33,2019S94,l_sites,tab:orange,-,1,2
+34,2019O5,DN_full,tab:blue,-,1,0
+35,2019P91,DN_full,tab:blue,-,1,1
+36,2019P187,DN_full,tab:blue,-,1,2
+37,2019O1,DN_full,tab:blue,-,1,3
+38,2019O6,DN_full,tab:blue,-,1,4
+39,2019P124,DN_full,tab:blue,-,1,5
+40,2019P22,north,green,-,1,0
+41,2019P91,north,green,-,1,1
+42,2019P187,north,green,-,1,2
+43,2019P123,right_1,goldenrod,-,1,0
+44,2019P112,right_1,goldenrod,-,1,1
+45,2019P187,right_1,goldenrod,-,1,2
+46,2019P114,right_2,gold,-,1,0
+47,2019P113,right_2,gold,-,1,1
+48,2019P155,right_2,gold,-,1,2
+49,2019P113,right_3,yellow,-,1,0
+50,2019P92,right_3,yellow,-,1,1
+51,2019P137,right_3,yellow,-,1,2
+52,2019P119,right_3,yellow,-,1,3
+53,2019P123,distant,orange,-,1,0
+54,2019P157,distant,orange,-,1,1
+55,2019P156,distant,orange,-,1,2
+56,2019P155,distant,orange,-,1,3
+57,2019P22,large,forest green,-,1,0
+58,2019P123,large,forest green,-,1,1
+59,2019P157,large,forest green,-,1,2
+60,2019P156,large,forest green,-,1,3
+61,2019P155,large,forest green,-,1,4
+62,2019P182,large,forest green,-,1,5
+63,2019P128,large,forest green,-,1,6
+64,2019P184,large,forest green,-,1,7
+65,2019P124,large,forest green,-,1,8
