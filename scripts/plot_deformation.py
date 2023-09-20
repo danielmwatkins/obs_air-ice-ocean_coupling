@@ -8,13 +8,18 @@ import os
 import pyproj
 
 dataloc = '../data/interpolated_tracks/'
+zoom_plot_dates = ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
+zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
 
+# These are used for coloring dots on the map
+# Smaller groups than the polygons
 left = ['2019P128', '2019P184', '2019P182', '2019P127']
 right = ['2019P155', '2019P123', '2019P112', '2019P113', '2019P114', '2019P22', '2019P119']
 distant = ['2019P156', '2019P157']
 l_sites = ['2019T67', '2019T65', '2019S94']
 ahead = ['2019P22']
 co = ['2019T66']
+
 site_specs = {'2019T67': ('tab:blue', 's', 7),
                '2019T65': ('powder blue', 's', 7),
                '2019S94': ('tab:green', 's', 7),
@@ -29,55 +34,17 @@ for f in os.listdir(dataloc):
 s_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True)
 s_track = s_track.loc[slice('2020-01-31 12:00', '2020-02-02 00:00')]
     
-polygons = {'Left 1': ['2019P184', '2019P127', '2019P182', '2019P128'],
-            'Left 2': ['2019P184', '2019P124', '2019O6', '2019P127'],
-            'Left 3': ['2019O1', '2019P127','2019O6'],
-            'DN_set_1': ['2019P124', '2019P125', '2019P102', '2019P198'],
-            'DN_set_2': ['2019P90', '2019P91', '2019P193', '2019P196'],
-            'DN_set_3': ['2019P136', '2019P187', '2019P92', '2019P103'],
-            'DN_set_4': ['2019P191', '2019P148', '2019P139', '2019P195'],
-            'DN_set_5': ['2019P143', '2019P203', '2019T69', '2019P105'],
-            'l_sites': [ '2019T65', '2019T67', '2019S94'],
-            'Full DN': ['2019O5', '2019P91', '2019P187', '2019P191',
-                        '2019P148', '2019P124'],
-            'North group': ['2019P22', '2019P91', '2019P187'],
-            'Right group 1': ['2019P123', '2019P112', '2019P187'],
-            'Right group 2': ['2019P114', '2019P113', '2019P155'],
-            'Right group 3': ['2019P113', '2019P92', '2019P137', '2019P119'],
-            'Distant group': ['2019P123', '2019P157', '2019P156', '2019P155'],
-            'Very large group': ['2019P22', '2019P123', '2019P157', '2019P156',
-                                 '2019P155', '2019P182', '2019P128', '2019P184',
-                                 '2019P124']}
 
-colors = {'Left 1': 'lilac',
-          'Left 2': 'purple',
-          'Left 3': 'maroon',
-          'DN_set_1': 'k',
-          'DN_set_2': 'k',
-          'DN_set_3': 'k',
-          'DN_set_4': 'k',
-          'DN_set_5': 'k',
-          'l_sites': 'tab:orange',
-          'Full DN': 'tab:blue',
-          'North group': 'green',
-          'Right group 1': 'goldenrod',
-          'Right group 2': 'gold',
-          'Right group 3': 'yellow',
-          'Distant group': 'orange',
-          'Very large group': 'forest green'}
+array_info = pd.read_csv('../data/array_info.csv')
+array_info = {array: group.set_index('buoyID') for array, group in array_info.groupby('array_name')}
 
-lstyles = {'DN_set_1': '-',
-           'DN_set_2': '--',
-           'DN_set_3': '-.',
-           'DN_set_4': ':',
-           'DN_set_5': '-'}    
+array_info['DN_set_5']
 
 strain_rates = {}
-for set_name in polygons:
-    strain_rates[set_name] = drifter.compute_strain_rate_components(polygons[set_name][::-1], buoy_data)
-
-
-    
+for set_name in array_info:
+    buoys = array_info[set_name].index[::-1]
+    strain_rates[set_name] = drifter.compute_strain_rate_components(buoys, buoy_data)
+print(strain_rates.keys())
 ###### Maps ########
 pol_stere_proj = 'epsg:3413'
 npstere_crs = pyproj.CRS(pol_stere_proj)
@@ -148,7 +115,8 @@ for idx in range(xylon.shape[0]):
     ax0.plot(xylon[idx,:] - x0, xylat[idx,:] - y0, color='k', alpha=0.5, lw=0.5)
 
 ax1 = ax0.inset(
-    [-530, -530, 450, 450], transform='data', zoom=True, # Check if zoom lets you choose the corners
+    [-530, -530, 450, 450], transform='data',
+    zoom=True, # Check if zoom lets you choose the corners
     zoom_kw={'ec': 'gray', 'ls': '-', 'linewidths': 0.5}
 )
 
@@ -159,6 +127,9 @@ ax1.plot(df_x.loc[date, dn_buoys], df_y.loc[date, dn_buoys], lw=0,
          marker='o', c='w', edgecolor='k', ms=4, edgewidth=0.5, zorder=4)
 
 for group, color in zip([left, right, distant, ahead], ['lilac', 'gold', 'orange', 'gray']):
+    
+    
+    # 
     ax0.plot(df_x.loc[date, group], df_y.loc[date, group], lw=0,
              marker='.', c=color, edgecolor='k', ms=5, edgewidth=0.5, zorder=4)
 
@@ -182,42 +153,42 @@ ax0.plot(s_track['x_stere']/1e3 - x0, s_track['y_stere']/1e3 - y0, lw=0.5,
 # Overlay polygons
 l = []
 h = []
-for set_name in ['Full DN', 'Left 1', 'Left 2', 'Left 3', 'North group']:
-    buoy_set = polygons[set_name]
+for set_name in ['DN_full', 'left_1', 'left_2', 'left_3', 'north', 'right_1', 'right_2', 'right_3']:
+    buoy_set = list(array_info[set_name].index)
+    buoy_set = list(array_info[set_name].index)
+    ls = array_info[set_name].line_style.values[0]
+    c = array_info[set_name].color.values[0]
+    lw = array_info[set_name].line_width.values[0]    
+    
     zorder=6
-    lw=1
 
     h.append(ax0.plot(df_x.loc[date, buoy_set + [buoy_set[0]]],
             df_y.loc[date, buoy_set + [buoy_set[0]]],
-                label=set_name, marker='', lw=lw, zorder=zorder, color=colors[set_name]))
+                label=set_name, marker='', lw=lw, zorder=zorder, color=c))
     l.append(set_name)
 
-for set_name in ['Full DN', 'DN_set_1', 'DN_set_2', 'DN_set_3',
-                 'DN_set_4', 'DN_set_5', 'l_sites']:
-    buoy_set = polygons[set_name]
-    ls = '-'
-    if set_name[0] == 'D':
-        ls = lstyles[set_name]
-    if set_name in ['Full DN', 'l_sites']:
-        zorder = 2
-        lw = 2
-    elif set_name == 'DN_set_5':
-        zorder = 2
-        lw = 1.5
-    else:
-        zorder = 3
-        lw = 1
-    if set_name != 'Full DN':
+for set_name in ['DN_full', 'DN_1', 'DN_2', 'DN_3',
+                 'DN_4', 'DN_5', 'l_sites']:
+    buoy_set = list(array_info[set_name].index)
+    ls = array_info[set_name].line_style.values[0]
+    c = array_info[set_name].color.values[0]
+    lw = array_info[set_name].line_width.values[0]
+
+    zorder = 3
+    if set_name in ['DN_full', 'DN_5', 'l_sites']:
+        zorder=2
+
+    if set_name != 'DN_full':
         h.append(ax1.plot(df_x.loc[date, buoy_set + [buoy_set[0]]],
             df_y.loc[date, buoy_set + [buoy_set[0]]],
                 label='', marker='', lw=lw, zorder=zorder,
-             color=colors[set_name], ls=ls))
+             color=c, ls=ls))
         l.append(set_name)
     else:
         ax1.plot(df_x.loc[date, buoy_set + [buoy_set[0]]],
             df_y.loc[date, buoy_set + [buoy_set[0]]],
                 label='', marker='', lw=lw, zorder=zorder,
-             color=colors[set_name], ls=ls)
+             color=c, ls=ls)
 
 
 ax0.legend(h, l, loc='r', ncols=1)
@@ -233,6 +204,7 @@ ax1.format(xlim=(-55,45), ylim=(-55,45),
 
 h = []
 l = []
+# replace with use of site_specs
 for color, label, m in zip(
     ['tab:red', 'tab:blue', 'powder blue', 'tab:green', 'w'],
     ['CO', 'L1', 'L2', 'L3', 'P'],
@@ -248,36 +220,44 @@ fig.format(title='', fontsize=12)
 fig.save('../figures/deformation_polygons_map.png', dpi=300)
 
 ### Deformation plot next    
-    
-    
-    
+for set_list, title in zip(
+    [['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
+     ['DN_full', 'left_1', 'left_2', 'north', 'right_1', 'right_2', 'right_3']],
+    ['fig08a_strainrate_timeseries.jpg',
+     'figXX_other_strainrate_timeseries.jpg']):
 
-ts = slice('2020-01-30 20:00', '2020-02-02 02:00')
-fig, ax = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
 
-for set_name in ['Full DN', 'l_sites', 'DN_set_1', 'DN_set_2', 'DN_set_3', 'DN_set_4', 'DN_set_5']:
-    if set_name[0] == 'D':
-        ls = lstyles[set_name]
-        lw = 1
+
+    ts = slice('2020-01-30 20:00', '2020-02-02 02:00')
+    fig, axs = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
+
+    for abc, date in zip(['a', 'b', 'c', 'd'], zoom_plot_dates):
+        for ax in axs:
+            ax.axvline(date, color='tab:blue', lw=0.5, zorder=0)
+
+        axs[0].text(date + pd.to_timedelta('30min'), 4e-6, abc, color='tab:blue', zorder=4)
+        axs[1].text(date + pd.to_timedelta('30min'), 2.4e-6, abc, color='tab:blue', zorder=4)
+        axs[2].text(date + pd.to_timedelta('30min'), 5.5e-6, abc, color='tab:blue', zorder=4)
+
+
+    for set_name in set_list:
+        buoy_set = list(array_info[set_name].index)
+        ls = array_info[set_name].line_style.values[0]
+        c = array_info[set_name].color.values[0]
+        lw = array_info[set_name].line_width.values[0]
+
         label = set_name
-    else:
-        ls = '-'
-        lw = 1
-        label = set_name
-    if set_name in ['Full DN', 'l_sites', 'DN_set_5']:
-        lw = 1.5
 
-        
-    print(set_name, np.round(strain_rates[set_name].area.loc[ts].mean()**0.5/1e3), 'km')
-    ax[0].plot(strain_rates[set_name].divergence.loc[ts], color=colors[set_name], ls=ls, lw=lw, label=label)
-    ax[1].plot(strain_rates[set_name].maximum_shear_strain_rate.loc[ts], ls=ls, color=colors[set_name], lw=lw, label=label)    
-    ax[2].plot(strain_rates[set_name].vorticity.loc[ts], color=colors[set_name], ls=ls, lw=lw, label=label)        
-    ax[0].axhline(0, color='k', lw=0.5) 
-    ax[2].axhline(0, color='k', lw=0.5)
-    ax[0].format(ultitle='divergence', ylabel='$\\nabla \cdot \vec u$ (s$^{-1}$)')
-    ax[1].format(ultitle='maximum shear strain rate', ylabel='$\epsilon_{II}$ (s$^{-1}$)')
-    ax[2].format(ultitle='vorticity', ylim=(-7.5e-6, 5.5e-6),
-                 ylabel='$\\nabla \\times \vec u$ (s$^{-1}$)')
-ax[2].legend(loc='ll', ncols=2)
-ax.format(xrotation=45, xlabel='')
-fig.save('../figures/strain_rates_DN.jpg', dpi=300)
+        print(set_name, np.round(strain_rates[set_name].area.loc[ts].mean()**0.5/1e3), 'km')
+        axs[0].plot(strain_rates[set_name].divergence.loc[ts], color=c, ls=ls, lw=lw, label=label)
+        axs[1].plot(strain_rates[set_name].maximum_shear_strain_rate.loc[ts], ls=ls, color=c, lw=lw, label=label)    
+        axs[2].plot(strain_rates[set_name].vorticity.loc[ts], color=c, ls=ls, lw=lw, label=label)        
+        axs[0].axhline(0, color='k', lw=0.5) 
+        axs[2].axhline(0, color='k', lw=0.5)
+        axs[0].format(ultitle='divergence', ylabel='$\\nabla \cdot \vec u$ (s$^{-1}$)')
+        axs[1].format(ultitle='max. shear strain rate', ylabel='$\epsilon_{II}$ (s$^{-1}$)')
+        axs[2].format(ultitle='vorticity', ylim=(-8.5e-6, 7e-6),
+                     ylabel='$\\nabla \\times \vec u$ (s$^{-1}$)')
+    axs[2].legend(loc='ll', ncols=3)
+    axs.format(xrotation=45, xlabel='', xminorlocator=1/12, xgridminor=True)
+    fig.save('../figures/' + title, dpi=300)

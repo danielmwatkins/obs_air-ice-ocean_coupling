@@ -7,6 +7,40 @@ Key components
 2. Meteorological data from flux towers and sleds
 3. Meteorological data from ERA5 reanalysis
 
+## Parameter files
+* `array_info.csv` Table containing the buoys used in the deformation arrays, and the color scheme.
+* `buoy_info.csv`. TBD table with the buoy parameters, used to make table for manuscript.
+
+## Preparing data
+* `prepare_buoy_data.py` Applies `standard_qc` and `interpolate_buoy_track` funtions from the `drifter.py` file to the MOSAiC buoy data files from the Arctic Data Center. Trajectories are then saved to the folder `data/interpolated_tracks/`.
+* `prepare_era_data.py` Downloads ERA5 data from 1/25 to 2/05 and saves it, then uses xesmf to regrid onto the NSIDC polar stereographic grid.
+
+## Calculations
+* calculate_deformation.py
+    - depends on array_info
+* calculate_cusp_timing.py
+* compile_met_data.py
+
+## Plotting
+* plot_maps.py
+    - add dependence on array_info.csv
+* plot_storm_system.py
+    - add dependence on plot_times.csv
+    - add dependence on array_info.csv
+* plot_snapshot_drift_and_wind.py
+    - add dependence on plot_times.csv
+    - add dependence on array_info.csv
+* plot_velocity_time_series.py
+    - add dependence on plot_times.csv
+    - set up multipanel plot to show the 4 panel display with wind direction
+* plot_deformation_time_series.py
+    - depends on plot_times.csv
+    - depends on array_info.csv
+    - produce multipanel plot with 4 panel display with velocity anomalies
+* plot_cusp_analysis.py
+    - scatter plot with time series of reversals
+    - trajectory with wind and ice drift arrows
+    - anomaly trajectories - i.e., trajectory minus origin
 
 ## Instructions for obtaining the MOSAiC drifting buoy data
 I downloaded the data from the Arctic Data Center on YYYYMMDD. The script drifter.py contains tools for the buoy analysis, QC, and interpolation. The script prepare_buoy_data.py uses the drifter.py tools to prepare the data and saves it in the folder 'data'.

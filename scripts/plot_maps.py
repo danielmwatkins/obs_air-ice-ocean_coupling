@@ -23,6 +23,9 @@ site_specs = {'2019T67': ('tab:blue', 's', 7),
                '2019S94': ('tab:green', 's', 7),
                '2019T66': ('tab:red', '*', 15)}
 
+
+
+
 ###### Maps ########
 pol_stere_proj = 'epsg:3413'
 npstere_crs = pyproj.CRS(pol_stere_proj)
@@ -110,6 +113,8 @@ for buoy in site_specs:
         ax0.plot(df_x[buoy], df_y[buoy], color=color, marker=shape, ms=size, edgecolor='k', edgewidth=0.5)
     ax1.plot(df_x[buoy], df_y[buoy], color=color, marker=shape, ms=size, edgecolor='k', edgewidth=0.5)
 
+ax1.plot([20, 40], [-50, -50], lw=2, color='k')
+ax1.text(20, -45, '20 km')
 ax0.format(xlim=(-550, 450), ylim=(-550, 450),
            xlocator=np.arange(-400, 401, 200), xtickminor=False,
            ylocator=np.arange(-400, 401, 200), ytickminor=False,
@@ -120,16 +125,16 @@ ax1.format(xlim=(-55,45), ylim=(-55,45),
 h = []
 l = []
 for color, label, m in zip(
-    ['tab:red', 'tab:blue', 'powder blue', 'tab:green', 'w'],
-    ['CO', 'L1', 'L2', 'L3', 'P'],
-    ['*', 's', 's', 's', 'o']):
+    ['tab:red', 'tab:blue', 'powder blue', 'tab:green', 'w', 'lilac', 'gold', 'orange', 'gray'],
+    ['CO', 'L1', 'L2', 'L3', 'DN', 'left', 'right', 'distant', 'ahead'],
+    ['*', 's', 's', 's', 'o', 'o', 'o', 'o', 'o']):
     if label=='CO':
         s = 10
     else:
         s = 5
     h.append(ax0.plot([],[], m=m, ms=s, lw=0, color=color, edgecolor='k'))
     l.append(label)
-ax0.legend(h, l, loc='lr', ncols=1, pad=0.5, alpha=1)
+ax0.legend(h, l, loc='lr', ncols=2, order='F', pad=0.5, alpha=1)
 fig.format(title='MOSAiC Distributed Network', fontsize=12)
-fig.save('../figures/distributed_network_map.png', dpi=300)
+fig.save('../figures/fig01_distributed_network_map.png', dpi=300)
 

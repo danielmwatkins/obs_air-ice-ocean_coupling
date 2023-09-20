@@ -11,6 +11,9 @@ import sys
 #sys.path.append('../scripts/')
 import drifter
 
+zoom_plot_dates = ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
+zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
+
 era5_dataloc = '../data/era5_regridded/'
 buoy_dataloc = '../data/interpolated_tracks/'
 
@@ -30,19 +33,6 @@ files = os.listdir(buoy_dataloc)
 files = [f for f in files if f[0] not in ['.', 'm']]
 buoy_data = {f.split('_')[-1].replace('.csv', ''): pd.read_csv(buoy_dataloc + f,
             index_col=0, parse_dates=True) for f in files}
-
-# full_time_series = [b for b in buoy_data if len(buoy_data[b].dropna())/len(buoy_data[b]) > 0.9]
-# station_id = metadata.loc[:, 'DN Station ID']
-# stations_already = []
-# truncated_list = []
-# for buoy in full_time_series:
-#     if station_id[buoy] not in stations_already:
-#         stations_already.append(station_id[buoy])
-#         truncated_list.append(buoy)
-
-# lat = pd.Series({buoy: buoy_data[buoy]['latitude'].median() for buoy in truncated_list})
-# lon = pd.Series({buoy: buoy_data[buoy]['longitude'].median() for buoy in truncated_list})
-
 
 for buoy in buoy_data:
     buoy_df = buoy_data[buoy].loc[:, ['latitude', 'longitude']]
@@ -101,8 +91,6 @@ pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
 fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False)
-zoom_plot_dates =  ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
-zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
 for date, ax in zip(zoom_plot_dates, axs):
     x_dn = df_x.loc[date, co_buoy]
     y_dn = df_y.loc[date, co_buoy]
@@ -175,7 +163,7 @@ ax.quiver(325,
           scale=400, headwidth=4, c = 'b', zorder=6, width=1/250)
 ax.text(250, -175, '20 m/s wind\n 2 cm/s ice', c='b')
 fig.format(xreverse=False, yreverse=False, abc=True)
-fig.save('../figures/snapshot_drift_and_wind.jpg', dpi=300)
+fig.save('../figures/fig06b_snapshot_drift_and_wind.jpg', dpi=300)
 
 ### Drift speed anomalies
 plot_winds = False
@@ -198,8 +186,8 @@ for date, ax in zip(zoom_plot_dates, axs):
     x_dn = x_dn*1e-3
     y_dn = y_dn*1e-3
     
-    ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
-                levels=np.arange(968, 1020, 4), lw=1, labels=False, zorder=2, labels_kw = {'inline_spacing': -1})
+#     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
+#                 levels=np.arange(968, 1020, 4), lw=1, labels=False, zorder=2, labels_kw = {'inline_spacing': -1})
         
 
     if plot_winds:
@@ -253,10 +241,6 @@ for date, ax in zip(zoom_plot_dates, axs):
               df_u.loc[date, buoy_set]*100,
               df_v.loc[date, buoy_set]*100,
               scale=200, headwidth=4, c = 'k', zorder=6, width=1/250)
-
-#     ax.plot(storm_track['x_stere']/1e3 - x_dn,
-#             storm_track['y_stere']/1e3 - y_dn,
-#             color='gray', lw=1, zorder=0)
     
     if plot_anomalies:
         ax.quiver(0, 0,
@@ -275,4 +259,4 @@ if plot_winds:
     
             
 fig.format(xreverse=False, yreverse=False, abc=True)
-fig.save('../figures/snapshot_velocity_anomaly_dn.jpg', dpi=300)
+fig.save('../figures/fig08b_snapshot_velocity_anomaly_dn.jpg', dpi=300)
