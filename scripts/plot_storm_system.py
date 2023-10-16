@@ -134,10 +134,10 @@ pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
 
-
+#### FIG 4: Storm Centered
 plot_scale = 0.8e3
-fig, axs = pplt.subplots(width=10, nrows=1, ncols=4, share=True, span=False)#, proj='npstere', proj_kw={'lon_0': -45})
-axs.format(land=True, boundinglat=75, latmax=90, lonlocator=np.arange(0, 361, 45), landzorder=1)
+fig, axs = pplt.subplots(width=6, nrows=2, ncols=2, share=True, span=False)#, proj='npstere', proj_kw={'lon_0': -45})
+# axs.format(land=True, boundinglat=75, latmax=90, lonlocator=np.arange(0, 361, 45), landzorder=1)
 
 idx_skip = 2
 
@@ -146,7 +146,7 @@ plot_dates = [pd.to_datetime(x) for x in plot_dates]
 
 for date, ax in zip(plot_dates, axs):
     x0 = storm_track.loc[date, 'x_stere'] # replace with storm track
-    y0 = storm_track.loc[date, 'y_stere']
+    y0 = storm_track.loc[date, 'y_stere'] 
     X = era5_data['msl']['x_stere'].data
     Y = era5_data['msl']['y_stere'].data
     local_xu = ((X - x0)[::idx_skip, ::idx_skip])*1e-3
@@ -159,16 +159,16 @@ for date, ax in zip(plot_dates, axs):
                         era5_data['theta_925'].sel(time=date)['theta_e'],
                         levels=np.arange(235, 285, 5),
                         cmap='coolwarm', extend='both',
-                        alpha=0.85, cmap_kw={'cut': 0.1}, zorder=0)
+                        alpha=0.75, cmap_kw={'cut': 0.1}, zorder=0)
     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
-                levels=np.arange(972, 1020, 4), labels=True, zorder=4)
+                levels=np.arange(972, 1020, 4), labels=True, zorder=2)
     
     ax.quiver(local_xu, local_yv,
               era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
               era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip],
               scale=350)
 
-    ax.format(title=date, ylabel='Y (km)', xlabel='X (km)',
+    ax.format(title=date, ylabel='Y (km)', xlabel='X (km)', titlesize=12,
          xlim=(-plot_scale, plot_scale), ylim=(-plot_scale, plot_scale),
           xticks=np.arange(-0.75e3, 0.8e3, 250), xtickminor=False, xrotation=90,
          yticks=np.arange(-0.75e3, 0.8e3, 250), ytickminor=False)
@@ -207,11 +207,12 @@ for date, ax in zip(plot_dates, axs):
     ax.plot(storm_track['x_stere']/1e3 - storm_track.loc[date, 'x_stere']/1e3,
             storm_track['y_stere']/1e3 - storm_track.loc[date, 'y_stere']/1e3,
             color='gray2', lw=1, zorder=3, m='s', ms=1)
-    
+
+    wind_color = 'lime5'
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                       color=['lime2'], levels=[16], zorder=2, labels=False)
+                       color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                       color=['lime5'], levels=[20], zorder=2, labels=False)
+                       color=[wind_color], levels=[20], zorder=4, labels=False)
     
 
     ax.format(title=date, ylabel='Y (km)', xlabel='X (km)',
@@ -220,13 +221,14 @@ for date, ax in zip(plot_dates, axs):
          yticks=np.arange(-0.75e3, 0.8e3, 250), ytickminor=False)
 
 h, l = [], []
-for c, label in zip(['k', 'lime2', 'lime5', 'gray2'],
+for c, ls, label in zip(['k', wind_color, wind_color, 'gray2'],
+                    ['-', '--', '-', '-'],
                     ['SLP (hPa)', '16 m/s wind', '20 m/s wind', 'Storm track']):
-    h.append(ax.plot([],[],color=c, lw=2))
+    h.append(ax.plot([],[],color=c, lw=2, ls=ls))
     l.append(label)
 axs[0].legend(h, l, loc='ll', alpha=1, ncols=1) 
     
-axs[3].colorbar(cbar1, label='$\\Theta_e$ (K)', loc='r', length=0.75)
+fig.colorbar(cbar1, label='$\\Theta_e$ (K)', loc='r', length=0.75)
 fig.format(abc=True)#, leftlabels=['Equiv. pot. temperature',  'Surface wind speed'])
 fig.save('../figures/fig04_storm_centered.jpg', dpi=300)
 
@@ -256,6 +258,6 @@ for ax, date in zip(axs, dates):
                            color=['purple'], ls='-',
                levels=[15], zorder=2, labels=False)
     
-    ax.format(title=date)
-fig.colorbar(c, label='Sea level pressure (hPa)', loc='r', shrink=0.5)
+    ax.format(title=date.strftime('%Y-%m-%d %H:%M'), titlesize=15)
+fig.colorbar(c, label='Sea level pressure (hPa)', loc='r', shrink=0.75)
 fig.save('../figures/fig02_slp_storms_overview.jpg', dpi=300)

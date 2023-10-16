@@ -63,4 +63,6 @@ Current version makes a separate dataset for each variable. Script can be custom
 2. Script TBD: Storm time series and sea ice concentration (large scale, showing the two storms).
 3. `plot_storm_system`: Makes the 4x2 plot that I like showing the side by side cases.
 4. Script TBD: Need to make a new version that plots the 3x3 Ola likes with the countours of wind speed plotted over it.
-5. 
+
+### Rotating imagery
+Ola wants the maps to be centered at 90. Need to trace through the pieces to see what stages need to change. Probably goes all the way back to the ERA5 regridding.

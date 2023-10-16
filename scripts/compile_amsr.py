@@ -34,7 +34,9 @@ data_sic = []
 data_motion = []
 for file in files:
     with h5py.File(sic_dataloc + file) as ds:
-        data_sic.append(ds['HDFEOS']['GRIDS']['NpPolarGrid12km']['Data Fields']['SI_12km_NH_ICECON_DAY'][:,:])
+        print(ds['HDFEOS']['GRIDS']['NpPolarGrid12km']['Data Fields'].keys())
+        day_ave_ice = ds['HDFEOS']['GRIDS']['NpPolarGrid12km']['Data Fields']['SI_12km_NH_ICECON_DAY'][:,:]
+        data_sic.append(day_ave_ice)
         
         motion = ds['motion'][()]
         df = pd.read_csv(io.BytesIO(motion), skiprows=2, names=['ix', 'iy', 'u', 'v', 'rho'],

@@ -17,6 +17,7 @@ saveloc = '../data/interpolated_tracks/'
 begin = '2020-01-25 00:00'
 end = '2020-02-05 00:00'
 max_interval = '3H'
+interp_freq = '30min'
 min_coverage = 0.8 # Fraction of data required
 
 # List of reference buoys for L and M sites
@@ -96,6 +97,6 @@ for sensor_id in buoy_data:
                         verbose=False)   
     # Interpolate to hourly
     if df_qc is not None:
-        df_interp = interpolate_buoy_track(df_qc.where(~df_qc.flag).dropna(), maxgap_minutes=240)
+        df_interp = interpolate_buoy_track(df_qc.where(~df_qc.flag).dropna(), freq='30min', maxgap_minutes=240)
         df_interp = compute_velocity(df_interp, rotate_uv = False, date_index=True, method='c')
         df_interp.to_csv(saveloc + filenames[sensor_id])

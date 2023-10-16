@@ -10,6 +10,9 @@ standard_qc = wrapper for QC functions
 interpolate_buoy_tracks = tool to interpolate buoy positions that masks places where
 the interpolator tries to fill too large of gaps. Interpolation is done in stereographic
 space rather than in lat/lon space.
+
+compute_strain_rate_components = implementation of the deformation calculations of hutchings et al., 2012, 2018.
+TBD for strain rates: dierking et al. uncertainty propagation, checks on whether the buoy arrays stretch too much or invert
 """
 
 import numpy as np
@@ -518,6 +521,8 @@ def compute_strain_rate_components(buoys, data):
         dvdy = accel(X, V, A, -1)
         
         results.append([
+            lon_data.loc[date,:].mean(), # lon mean - replace with centroid?
+            lat_data.loc[date,:].mean(), # lat mean - replace with centroid?
             dudx + dvdy, #div
             dvdx - dudy, #vor
             dudy + dvdx, #pure
@@ -529,7 +534,7 @@ def compute_strain_rate_components(buoys, data):
             
     return pd.DataFrame(
         np.vstack(results),
-        columns=['divergence', 'vorticity', 'pure_shear',
+        columns=['longitude', 'latitude', 'divergence', 'vorticity', 'pure_shear',
                  'normal_shear', 'maximum_shear_strain_rate',
                  'area', 'shape_flag'],
         index=X_data.index)

@@ -11,7 +11,7 @@ import sys
 #sys.path.append('../scripts/')
 import drifter
 
-zoom_plot_dates = ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
+zoom_plot_dates = ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
 
 era5_dataloc = '../data/era5_regridded/'
@@ -85,12 +85,12 @@ l_colors = {'2019T67': 'tab:blue',
             '2019T65': 'powder blue',
             '2019S94': 'tab:green'}
 
-pplt.rc['title.bbox'] = True
-pplt.rc['title.bboxalpha'] = 1
+# pplt.rc['title.bbox'] = True
+# pplt.rc['title.bboxalpha'] = 1
 pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
-fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False)
+fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False, spanx=False)
 for date, ax in zip(zoom_plot_dates, axs):
     x_dn = df_x.loc[date, co_buoy]
     y_dn = df_y.loc[date, co_buoy]
@@ -160,18 +160,19 @@ ax.quiver(325,
           -100,
           20,
           0,
-          scale=400, headwidth=4, c = 'b', zorder=6, width=1/250)
-ax.text(250, -175, '20 m/s wind\n 2 cm/s ice', c='b')
-fig.format(xreverse=False, yreverse=False, abc=True)
+          scale=300, headwidth=4, c = 'b', zorder=6, width=1/250)
+ax.text(250, -175, '20 m/s wind\n 20 cm/s ice', c='b')
+axs.format(xreverse=False, yreverse=False)#['d', 'e','f','g'])
+for ax, label in zip(axs, ['d','e','f','g']):
+    ax.format(ltitle=label)
+
 fig.save('../figures/fig06b_snapshot_drift_and_wind.jpg', dpi=300)
 
 ### Drift speed anomalies
 plot_winds = False
 plot_anomalies = True
     
-fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False)
-zoom_plot_dates =  ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
-zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
+fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False, spanx=False)
 for date, ax in zip(zoom_plot_dates, axs):
     x_dn = df_x.loc[date, co_buoy]
     y_dn = df_y.loc[date, co_buoy]
@@ -186,10 +187,6 @@ for date, ax in zip(zoom_plot_dates, axs):
     x_dn = x_dn*1e-3
     y_dn = y_dn*1e-3
     
-#     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
-#                 levels=np.arange(968, 1020, 4), lw=1, labels=False, zorder=2, labels_kw = {'inline_spacing': -1})
-        
-
     if plot_winds:
         ax.quiver(local_xu, local_yv,
                   era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
@@ -248,6 +245,8 @@ for date, ax in zip(zoom_plot_dates, axs):
         v = np.sqrt(df_u_mean**2 + df_v_mean**2)*100
         ax.text(10, -50, '$\overline{U_{ice}}$: ' + str(np.round(v, 1)) + ' cm/s', c='tab:red')
 
+for ax, label in zip(axs, ['d','e','f','g']):
+    ax.format(ltitle=label)
     
 if plot_winds:
     ax.quiver(74,
@@ -255,8 +254,8 @@ if plot_winds:
               20,
               0,
               scale=400, headwidth=4, c = 'b', zorder=6, width=1/250)
-    ax.text(30, -60, '20 m/s wind\n 2 cm/s ice', c='b')
+    ax.text(30, -60, '20 m/s wind\n 20 cm/s ice', c='b')
     
-            
-fig.format(xreverse=False, yreverse=False, abc=True)
+
+fig.format(xreverse=False, yreverse=False)
 fig.save('../figures/fig08b_snapshot_velocity_anomaly_dn.jpg', dpi=300)

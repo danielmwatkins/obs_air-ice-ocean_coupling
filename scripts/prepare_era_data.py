@@ -1,3 +1,4 @@
+"""First downloads ERA5 data to file. Then projects onto a polar stereographic grid centered on the North Pole."""
 import cdsapi
 import xarray as xr
 import os
@@ -8,10 +9,6 @@ from urllib.request import urlopen
 import xesmf as xe
 
 # Settings
-# start_date = '2019-11-11 00:00'
-# end_date = '2019-11-25 00:00'
-# savename = '2019-11-11_2019-11-25'
-
 start_date = '2020-01-25 00:00'
 end_date = '2020-02-05 00:00'
 savename = '2020-01-25_2020-02-05'
@@ -70,7 +67,9 @@ xgrid = np.arange(-2e6, 2e6+1, dx)
 xgrid, ygrid = np.meshgrid(xgrid, xgrid)
 
 proj_LL = 'epsg:4326' # WGS 84 Ellipsoid
-proj_XY = 'epsg:3413' # NSIDC Polar Stereographic
+# proj_XY = 'epsg:3413' # NSIDC Polar Stereographic
+# Polar stereographic projection with WGS84 datum, central longitude 90, central latitude 90, and true scale latitude 70.
+proj_XY = '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs'
 transform_to_ll = pyproj.Transformer.from_crs(proj_XY, proj_LL, always_xy=True)
 
 longrid = np.zeros(xgrid.shape)

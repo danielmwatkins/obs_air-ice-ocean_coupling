@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 # Downloaded ADC data (cox et al. 2023)
-dataloc = '~/Documents/research/data/mosaic_met_data/'
+dataloc = '/Users/dwatkin2/Documents/research/data/mosaic_met_data/'
 saveloc = '../data/met_data/'
 for source in ['metcity']: #['asfs40', 'asfs50', 'asfs30', 'metcity']:
     files = os.listdir(dataloc + source + '/data/')

@@ -5,6 +5,8 @@ import numpy as np
 import os
 
 dataloc = '../data/interpolated_tracks/'
+zoom_plot_dates = ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
+zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
 
 buoy_data = {}
 for f in os.listdir(dataloc):
@@ -47,22 +49,16 @@ for var, ax in zip(['u', 'v', 'speed'], axs):
             z = 0
         if b == '2019P22':
             c = 'gray'
-#         if b == '2019T66':
-#             z += 1
-#             ls = '--'
             
         ax.plot(buoy_data[b].loc[ts, var].resample('1H').asfreq(),
                 c=c, zorder=z, marker='', lw=lw, ls=ls)
 
-    ax.format(ylabel=var + ' (m/s)', xlabel='', xrotation=45, xformatter='%b %d %HZ',
-             xlocator=1/2,
-              xminorlocator=1/6, xgridminor=True)#, suptitle='Drift velocity')
+    ax.format(ylabel=var + ' (m/s)', xlabel='', xrotation=45, 
+              xminorlocator=1/12, xgridminor=True)
     
-zoom_plot_dates = ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
-zoom_plot_dates = [pd.to_datetime(x) for x in zoom_plot_dates]
 
 
-for abc, date in zip(['a', 'b', 'c', 'd'], zoom_plot_dates):
+for abc, date in zip(['d', 'e', 'f', 'g'], zoom_plot_dates):
     for ax in axs:
         ax.axvline(date, color='tab:blue', lw=0.5, zorder=0)
 
@@ -94,5 +90,7 @@ for color, label in zip(
     h.append(ax.plot([],[], lw=lw, color=color, ls=ls))
     l.append(label)
 ax.legend(h, l, ncols=2, loc='ul', alpha=1, order='F')
-    
-fig.save('../figures/velocity_timeseries_ice_stereographic_uv.jpg', dpi=300)
+for ax, label in zip(axs, ['a','b','c']):
+    ax.format(ltitle=label)
+
+fig.save('../figures/fig06a_velocity_timeseries_ice_stereographic_uv.jpg', dpi=300)
