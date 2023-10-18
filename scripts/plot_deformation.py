@@ -38,7 +38,7 @@ s_track = s_track.loc[slice('2020-01-31 12:00', '2020-02-02 00:00')]
 array_info = pd.read_csv('../data/array_info.csv')
 array_info = {array: group.set_index('buoyID') for array, group in array_info.groupby('array_name')}
 
-array_info['DN_set_5']
+array_info['DN_5']['line_style'] = [(1, (4, 1, 1, 1, 1, 1))]*len(array_info['DN_5'])
 
 strain_rates = {}
 for set_name in array_info:
@@ -231,13 +231,13 @@ for set_list, title in zip(
     ts = slice('2020-01-30 20:00', '2020-02-02 02:00')
     fig, axs = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
 
-    for abc, date in zip(['a', 'b', 'c', 'd'], zoom_plot_dates):
+    for abc, date in zip(['d', 'e', 'f', 'g'], zoom_plot_dates):
         for ax in axs:
             ax.axvline(date, color='tab:blue', lw=0.5, zorder=0)
 
-        axs[0].text(date + pd.to_timedelta('30min'), 4e-6, abc, color='tab:blue', zorder=4)
-        axs[1].text(date + pd.to_timedelta('30min'), 2.4e-6, abc, color='tab:blue', zorder=4)
-        axs[2].text(date + pd.to_timedelta('30min'), 5.5e-6, abc, color='tab:blue', zorder=4)
+        axs[0].text(date + pd.to_timedelta('30min'), 4, abc, color='tab:blue', zorder=4)
+        axs[1].text(date + pd.to_timedelta('30min'), 2.4, abc, color='tab:blue', zorder=4)
+        axs[2].text(date + pd.to_timedelta('30min'), 5.5, abc, color='tab:blue', zorder=4)
 
 
     for set_name in set_list:
@@ -249,15 +249,15 @@ for set_list, title in zip(
         label = set_name
 
         print(set_name, np.round(strain_rates[set_name].area.loc[ts].mean()**0.5/1e3), 'km')
-        axs[0].plot(strain_rates[set_name].divergence.loc[ts], color=c, ls=ls, lw=lw, label=label)
-        axs[1].plot(strain_rates[set_name].maximum_shear_strain_rate.loc[ts], ls=ls, color=c, lw=lw, label=label)    
-        axs[2].plot(strain_rates[set_name].vorticity.loc[ts], color=c, ls=ls, lw=lw, label=label)        
+        axs[0].plot(strain_rates[set_name].divergence.loc[ts] * 1e6, color=c, ls=ls, lw=lw, label=label)
+        axs[1].plot(strain_rates[set_name].maximum_shear_strain_rate.loc[ts]* 1e6, ls=ls, color=c, lw=lw, label=label)    
+        axs[2].plot(strain_rates[set_name].vorticity.loc[ts]* 1e6, color=c, ls=ls, lw=lw, label=label)        
         axs[0].axhline(0, color='k', lw=0.5) 
         axs[2].axhline(0, color='k', lw=0.5)
-        axs[0].format(ultitle='divergence', ylabel='$\\nabla \cdot \vec u$ (s$^{-1}$)')
-        axs[1].format(ultitle='max. shear strain rate', ylabel='$\epsilon_{II}$ (s$^{-1}$)')
-        axs[2].format(ultitle='vorticity', ylim=(-8.5e-6, 7e-6),
-                     ylabel='$\\nabla \\times \vec u$ (s$^{-1}$)')
+        axs[0].format(ultitle='divergence', ylabel='$\\nabla \cdot \vec u$ (s$^{-1} \\times 10^{-6}$)', ltitle='a')
+        axs[1].format(ultitle='max. shear strain rate', ylabel='$\epsilon_{II}$ (s$^{-1}\\times 10^{-6}$)', ltitle='b')
+        axs[2].format(ultitle='vorticity', ylim=(-8.5, 7),
+                     ylabel='$\\nabla \\times \vec u$ (s$^{-1}\\times 10^{-6}$)', ltitle='c')
     axs[2].legend(loc='ll', ncols=3)
     axs.format(xrotation=45, xlabel='', xminorlocator=1/12, xgridminor=True)
     fig.save('../figures/' + title, dpi=300)
