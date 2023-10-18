@@ -104,7 +104,7 @@ def check_gaps(buoy_df, threshold_gap='4H', threshold_segment=12, date_col=None)
 
     
 
-def compute_velocity(buoy_df, date_index=True, rotate_uv=False, method='c'):
+def compute_velocity(buoy_df, date_index=True, rotate_uv=False, method='c', xvar='x', yvar='y'):
     """Computes buoy velocity and (optional) rotates into north and east directions.
     If x and y are not in the columns, projects lat/lon onto stereographic x/y prior
     to calculating velocity. Rotate_uv moves the velocity into east/west. Velocity
@@ -133,7 +133,7 @@ def compute_velocity(buoy_df, date_index=True, rotate_uv=False, method='c'):
     bwd_endpoint = (delta_t_prior < delta_t_next) & (np.abs(delta_t_prior - delta_t_next) > 2*min_dt)
     fwd_endpoint = (delta_t_prior > delta_t_next) & (np.abs(delta_t_prior - delta_t_next) > 2*min_dt)
     
-    if 'x' not in buoy_df.columns:
+    if xvar not in buoy_df.columns:
         projIn = 'epsg:4326' # WGS 84 Ellipsoid
         projOut = 'epsg:3413' # NSIDC North Polar Stereographic
         transformer = pyproj.Transformer.from_crs(projIn, projOut, always_xy=True)
@@ -142,18 +142,18 @@ def compute_velocity(buoy_df, date_index=True, rotate_uv=False, method='c'):
         lat = buoy_df.latitude.values
 
         x, y = transformer.transform(lon, lat)
-        buoy_df['x'] = x
-        buoy_df['y'] = y
+        buoy_df[xvar] = x
+        buoy_df[yvar] = y
     
     if method in ['f', 'forward']:
         dt = (date.shift(-1) - date).dt.total_seconds().values
-        dxdt = (buoy_df['x'].shift(-1) - buoy_df['x'])/dt
-        dydt = (buoy_df['y'].shift(-1) - buoy_df['y'])/dt
+        dxdt = (buoy_df[xvar].shift(-1) - buoy_df[xvar])/dt
+        dydt = (buoy_df[yvar].shift(-1) - buoy_df[yvar])/dt
 
     elif method in ['b', 'backward']:
         dt = (date - date.shift(1)).dt.total_seconds()
-        dxdt = (buoy_df['x'] - buoy_df['x'].shift(1))/dt
-        dydt = (buoy_df['y'] - buoy_df['y'].shift(1))/dt
+        dxdt = (buoy_df[xvar] - buoy_df[xvar].shift(1))/dt
+        dydt = (buoy_df[yvar] - buoy_df[yvar].shift(1))/dt
 
     elif method in ['c', 'fb', 'centered', 'forward_backward']:
         fwd_df = compute_velocity(buoy_df.copy(), date_index=date_index, method='forward')
@@ -164,8 +164,8 @@ def compute_velocity(buoy_df, date_index=True, rotate_uv=False, method='c'):
         
         if method in ['c', 'centered']:
             dt = (date.shift(-1) - date.shift(1)).dt.total_seconds()
-            dxdt = (buoy_df['x'].shift(-1) - buoy_df['x'].shift(1))/dt
-            dydt = (buoy_df['y'].shift(-1) - buoy_df['y'].shift(1))/dt
+            dxdt = (buoy_df[xvar].shift(-1) - buoy_df[xvar].shift(1))/dt
+            dydt = (buoy_df[yvar].shift(-1) - buoy_df[yvar].shift(1))/dt
         else:
             dxdt = np.sign(bwd_dxdt)*np.abs(pd.DataFrame({'f': fwd_dxdt, 'b':bwd_dxdt})).min(axis=1)
             dydt = np.sign(bwd_dxdt)*np.abs(pd.DataFrame({'f': fwd_dydt, 'b':bwd_dydt})).min(axis=1)
@@ -177,10 +177,10 @@ def compute_velocity(buoy_df, date_index=True, rotate_uv=False, method='c'):
     
     if rotate_uv:
         # Unit vectors
-        buoy_df['Nx'] = 1/np.sqrt(buoy_df['x']**2 + buoy_df['y']**2) * -buoy_df['x']
-        buoy_df['Ny'] = 1/np.sqrt(buoy_df['x']**2 + buoy_df['y']**2) * -buoy_df['y']
-        buoy_df['Ex'] = 1/np.sqrt(buoy_df['x']**2 + buoy_df['y']**2) * -buoy_df['y']
-        buoy_df['Ey'] = 1/np.sqrt(buoy_df['x']**2 + buoy_df['y']**2) * buoy_df['x']
+        buoy_df['Nx'] = 1/np.sqrt(buoy_df[xvar]**2 + buoy_df[yvar]**2) * -buoy_df[xvar]
+        buoy_df['Ny'] = 1/np.sqrt(buoy_df[xvar]**2 + buoy_df[yvar]**2) * -buoy_df[yvar]
+        buoy_df['Ex'] = 1/np.sqrt(buoy_df[xvar]**2 + buoy_df[yvar]**2) * -buoy_df[yvar]
+        buoy_df['Ey'] = 1/np.sqrt(buoy_df[xvar]**2 + buoy_df[yvar]**2) * buoy_df[xvar]
 
         buoy_df['u'] = buoy_df['Ex'] * dxdt + buoy_df['Ey'] * dydt
         buoy_df['v'] = buoy_df['Nx'] * dxdt + buoy_df['Ny'] * dydt

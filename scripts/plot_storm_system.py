@@ -29,7 +29,7 @@ import cartopy.crs as ccrs
 warnings.simplefilter('ignore')
 pplt.rc.reso='med'
 pplt.rc['cartopy.circular'] = False
-crs = ccrs.NorthPolarStereo(central_longitude=-45, true_scale_latitude=70)
+crs = ccrs.NorthPolarStereo(central_longitude=90, true_scale_latitude=70)
 
 era5_dataloc = '../data/era5_regridded/'
 buoy_dataloc = '../data/interpolated_tracks/'
@@ -103,7 +103,7 @@ era5_data['theta_925'] = ds_theta
 # Rotate U and V (could move this into the regridding section)
 u = era5_data['u10']['u10']
 v = era5_data['v10']['v10']
-lon = u['longitude'] + 45 # NSIDC xstere is rotated
+lon = u['longitude'] - 90 # Projected with central_longitude = 90, so this centers it
 lat = v['latitude']
 ustere = u * np.cos(np.deg2rad(lon)) - v * np.sin(np.deg2rad(lon))    
 vstere = u * np.sin(np.deg2rad(lon)) + v * np.cos(np.deg2rad(lon))
@@ -135,6 +135,7 @@ pplt.rc['ytick.major.width'] = 0
 
 
 #### FIG 4: Storm Centered
+# Return to this - can I make the equivalent plot but with land overlaid?
 plot_scale = 0.8e3
 fig, axs = pplt.subplots(width=6, nrows=2, ncols=2, share=True, span=False)#, proj='npstere', proj_kw={'lon_0': -45})
 # axs.format(land=True, boundinglat=75, latmax=90, lonlocator=np.arange(0, 361, 45), landzorder=1)
@@ -208,7 +209,7 @@ for date, ax in zip(plot_dates, axs):
             storm_track['y_stere']/1e3 - storm_track.loc[date, 'y_stere']/1e3,
             color='gray2', lw=1, zorder=3, m='s', ms=1)
 
-    wind_color = 'lime5'
+    wind_color = 'lime8'
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
                        color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
@@ -226,7 +227,7 @@ for c, ls, label in zip(['k', wind_color, wind_color, 'gray2'],
                     ['SLP (hPa)', '16 m/s wind', '20 m/s wind', 'Storm track']):
     h.append(ax.plot([],[],color=c, lw=2, ls=ls))
     l.append(label)
-axs[0].legend(h, l, loc='ll', alpha=1, ncols=1) 
+axs[0].legend(h, l, loc='ur', alpha=1, ncols=1) 
     
 fig.colorbar(cbar1, label='$\\Theta_e$ (K)', loc='r', length=0.75)
 fig.format(abc=True)#, leftlabels=['Equiv. pot. temperature',  'Surface wind speed'])
@@ -238,14 +239,15 @@ import warnings
 import cartopy.crs as ccrs
 pplt.rc.reso='med'
 pplt.rc['cartopy.circular'] = False
-crs = ccrs.NorthPolarStereo(central_longitude=-45, true_scale_latitude=70)
+crs = ccrs.NorthPolarStereo(central_longitude=90, true_scale_latitude=70)
+crs_nsidc = ccrs.NorthPolarStereo(central_longitude=-45, true_scale_latitude=70)
 
 df_x = pd.DataFrame({buoy: buoy_data[buoy]['x_stere'].resample('1H').asfreq() for buoy in buoy_data})
 df_y = pd.DataFrame({buoy: buoy_data[buoy]['y_stere'].resample('1H').asfreq() for buoy in buoy_data})
 
 warnings.simplefilter('ignore')
 dates = pd.date_range('2020-01-30 00:00', '2020-02-02 00:00', freq='6H')
-fig, axs = pplt.subplots(proj='npstere', proj_kw={'lon_0': -45}, ncols=4, nrows=3)
+fig, axs = pplt.subplots(proj='npstere', proj_kw={'lon_0': 90}, ncols=4, nrows=3)
 axs.format(land=True, boundinglat=75, latmax=90, lonlocator=np.arange(0, 361, 45), landzorder=1)
 for ax, date in zip(axs, dates):
     ax.plot(df_x.loc[date,:], df_y.loc[date,:], transform=crs, marker='o', lw=0, ms=3, color='w', edgecolor='k', ew=0.5)
@@ -254,7 +256,7 @@ for ax, date in zip(axs, dates):
                     era5_data['msl'].y_stere, era5_data['msl'].sel(time=date)['msl']/100, transform=crs,
                 zorder=0, cmap='coldhot', levels=np.arange(972, 1030, 4), extend='both')
     ax.contour(ds_sic['x_stere'], ds_sic['y_stere'],
-                   ds_sic.sel(time=date.strftime('%Y-%m-%d'))['sea_ice_concentration'], transform=crs,
+                   ds_sic.sel(time=date.strftime('%Y-%m-%d'))['sea_ice_concentration'], transform=crs_nsidc,
                            color=['purple'], ls='-',
                levels=[15], zorder=2, labels=False)
     

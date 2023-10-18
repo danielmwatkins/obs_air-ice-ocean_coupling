@@ -66,9 +66,9 @@ for abc, date in zip(['d', 'e', 'f', 'g'], zoom_plot_dates):
     axs[1].text(date + pd.to_timedelta('30min'), 0.5, abc, color='tab:blue', zorder=4)
     axs[2].text(date + pd.to_timedelta('30min'), 0.525, abc, color='tab:blue', zorder=4)
 
-axs[0].format(ylim=(-0.4, 0.6))
-axs[1].format(ylim=(-0.4, 0.6))
-axs[2].format(ylim=(-0.05, 0.6))
+axs[0].format(ylim=(-0.6, 0.4))
+axs[1].format(ylim=(-0.6, 0.4))
+axs[2].format(ylim=(0, 0.6))
 for ax in axs:
     ax.axhline(0, color='gray', lw=1, alpha=0.5, zorder=0)
 h = []

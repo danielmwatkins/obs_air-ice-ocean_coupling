@@ -1,9 +1,11 @@
+import cartopy.crs as ccrs
 import pandas as pd
 import proplot as pplt
 import pyproj
 import numpy as np
 import os
-
+import warnings
+warnings.simplefilter('ignore')
 dataloc = '../data/interpolated_tracks/'
 
 buoy_data = {}
@@ -18,123 +20,81 @@ distant = ['2019P156', '2019P157']
 ahead = ['2019P22']
 l_sites = ['2019T67', '2019T65', '2019S94']
 co = ['2019T66']
-site_specs = {'2019T67': ('tab:blue', 's', 7),
-               '2019T65': ('powder blue', 's', 7),
-               '2019S94': ('tab:green', 's', 7),
-               '2019T66': ('tab:red', '*', 15)}
-
-
-
-
-###### Maps ########
-pol_stere_proj = 'epsg:3413'
-npstere_crs = pyproj.CRS(pol_stere_proj)
-source_crs = pyproj.CRS("epsg:4326") # Global lat-lon coordinate system
-latlon_to_polar = pyproj.Transformer.from_crs(source_crs, npstere_crs, always_xy=True)
-for buoy in buoy_data:
-    x, y = latlon_to_polar.transform(buoy_data[buoy].longitude, buoy_data[buoy].latitude)
-    buoy_data[buoy]['x_stere'] = x
-    buoy_data[buoy]['y_stere'] = y
-
-fig, ax0 = pplt.subplots(ncols=1, width=4, share=False)
+site_specs = {'2019T67': ('tab:blue', 's', 8, 1),
+               '2019T65': ('powder blue', 's', 8, 2),
+               '2019S94': ('tab:green', 's', 8, 3),
+               '2019T66': ('tab:red', '*', 15, 0)}
 date = '2020-02-01 00:00'
 all_buoys = [b for b in buoy_data if date in buoy_data[b].index]
-
-df_x = pd.DataFrame({buoy: buoy_data[buoy].loc[date, 'x_stere'] for buoy in all_buoys}, index=all_buoys)/1e3
-df_y = pd.DataFrame({buoy: buoy_data[buoy].loc[date, 'y_stere'] for buoy in all_buoys}, index=all_buoys)/1e3
-x0 = df_x['2019T66']
-y0 = df_y['2019T66']
-df_x -= x0
-df_y -= y0
-
-
-#### Lat/lon lines ####
-from scipy.interpolate import interp1d
-
-crs0 = pyproj.CRS('WGS84')
-crs1 = pyproj.CRS('epsg:3413')
-transformer_ll = pyproj.Transformer.from_crs(crs0, crs_to=crs1, always_xy=True)
-transformer_xy = pyproj.Transformer.from_crs(crs1, crs_to=crs0, always_xy=True)
-
-lats = np.arange(75, 91, 2.5)
-lons = np.arange(-180, 181, 10)
-lons, lats = np.meshgrid(lons, lats)
-xylon, xylat = transformer_ll.transform(lons, lats)
-xylon = xylon * 1e-3
-xylat = xylat * 1e-3
-
-# x0 = 0.4e6
-# y0 = -1.1e6
-lat_labels = []
-lat_y = []
-lon_labels = []
-lon_x = []
-
-for idx in range(0, xylon.shape[0]):
-    if np.any(xylon[idx,:] < x0['2019T66']) & np.any(xylon[idx,:] > x0['2019T66']):
-        y = interp1d(xylon[idx,:], xylat[idx,:])(x0['2019T66'])
-        lat_y.append(y)
-        lat_labels.append(lats[idx,0])
-for idx in range(0, xylon.shape[1]):
-    if np.any(xylat[:,idx] < y0['2019T66']) & np.any(xylat[:,idx] > y0['2019T66']):
-        if np.any(xylon[:,idx] < x0['2019T66']) & np.any(xylon[:,idx] > x0['2019T66']):            
-            x = interp1d(xylat[:,idx], xylon[:,idx])(y0['2019T66'])
-            lon_x.append(x)
-            lon_labels.append(lons[0,idx])
-            
-lat_y = list(np.array(lat_y))
-lat_labels = [str(x) + '$^\circ$' for x in lat_labels]
-lon_labels = [str(x) + '$^\circ$' for x in lon_labels]
-lon_x = list(np.array(lon_x))
-####
-
 dn_buoys = [b for b in all_buoys if b not in left + right + distant]
-for idx in range(xylon.shape[1]):
-    ax0.plot(xylon[:,idx] - x0['2019T66'], xylat[:,idx] - y0['2019T66'], color='k', alpha=0.5, lw=0.5)
-for idx in range(xylon.shape[0]):
-    
-    ax0.plot(xylon[idx,:] - x0['2019T66'], xylat[idx,:] - y0['2019T66'], color='k', alpha=0.5, lw=0.5)
-
-ax1 = ax0.inset(
-    [-530, -530, 450, 450], transform='data', zoom=True, # Check if zoom lets you choose the corners
-    zoom_kw={'ec': 'gray', 'ls': '-', 'linewidths': 0.5}
-)
 
 
-ax0.plot(df_x, df_y, marker='o', c='w', edgecolor='k', ms=3, edgewidth=0.5)
-ax1.plot(df_x[dn_buoys], df_y[dn_buoys], marker='o', c='w', edgecolor='k', ms=4, edgewidth=0.5)
 
-for group, color in zip([left, right, distant, ahead], ['lilac', 'gold', 'orange', 'gray']):
-    ax0.plot(df_x[group], df_y[group], marker='o', c=color, edgecolor='k', ms=5, edgewidth=0.5)
+pplt.rc.reso='med'
+pplt.rc['cartopy.circular'] = False
+
+crs = ccrs.NorthPolarStereo(central_longitude=90, true_scale_latitude=70)
+fig, axs = pplt.subplots(proj='npstere', proj_kw={'lon_0': 90, 'true_scale_latitude': 80}, ncols=2, width=6)
+axs.format(land=True, latgrid=True, longrid=True, latmax=90, latlocator=1, lonlocator=10, latlabels=True, lonlabels=True)
+offset = 300e3
+x0 = 23255
+y0 = -276124 - offset
+dx = 500e3
+ax = axs[0]
+ax.set_extent([x0-dx, x0+dx, y0-dx, y0+dx], crs=crs)
+
+df_x = pd.Series({buoy: buoy_data[buoy].loc[date, 'x_stere'] for buoy in all_buoys})
+df_y = pd.Series({buoy: buoy_data[buoy].loc[date, 'y_stere'] for buoy in all_buoys})
+
+for group, color in zip([left, right, distant, ahead, co], ['lilac', 'gold', 'orange', 'gray', 'firebrick']):
+    if color == 'firebrick':
+        m = '*'
+        ms = 15
+    else:
+        m = 'o'
+        ms = 5
+    ax.plot(df_x[group], df_y[group], marker=m, c=color, lw=0, edgecolor='k', ms=ms, edgewidth=0.5, transform=crs)
+
+x0 -= 50e3
+ax.plot([x0 +250e3, x0 + 450e3], [y0 - 0.75*dx, y0 - 0.75 * dx], color='k', transform=crs, lw=5)
+ax.plot([x0 +350e3, x0 + 445e3], [y0 - 0.75*dx, y0 - 0.75 * dx], color='w', transform=crs, lw=4)
+ax.text(x0 +230e3, y0 - 0.7*dx, 0)
+ax.text(x0 +310e3, y0 - 0.7*dx, '100')
+ax.text(x0 +420e3, y0 - 0.7*dx, '200')
+ax.text(x0 + 320e3, y0-0.9*dx, 'km')
+
+ax = axs[1]
+dx = 60e3
+x0 = 23255
+y0 = -276124 + 20e3
+ax.set_extent([x0-dx, x0+dx, y0-dx, y0+dx], crs=crs)
+axs[0].plot([x0-dx, x0-dx, x0+dx, x0+dx, x0-dx], [y0-dx, y0+dx, y0+dx, y0-dx, y0-dx], color='b', lw=0.5, transform=crs)
+
+ax.plot(df_x[dn_buoys], df_y[dn_buoys], marker='o', c='w', lw=0, edgecolor='k', ms=4, edgewidth=0.5, transform=crs)
 
 for buoy in site_specs:
-    color, shape, size = site_specs[buoy]
+    color, shape, size, num = site_specs[buoy]
     if buoy == '2019T66':
-        ax0.plot(df_x[buoy], df_y[buoy], color=color, marker=shape, ms=size, edgecolor='k', edgewidth=0.5)
-    ax1.plot(df_x[buoy], df_y[buoy], color=color, marker=shape, ms=size, edgecolor='k', edgewidth=0.5)
-
-ax1.plot([20, 40], [-50, -50], lw=2, color='k')
-ax1.text(20, -45, '20 km')
-ax0.format(xlim=(-550, 450), ylim=(-550, 450),
-           xlocator=np.arange(-400, 401, 200), xtickminor=False,
-           ylocator=np.arange(-400, 401, 200), ytickminor=False,
-           ylabel='Y (km)', xlabel='X (km)')
-ax1.format(xlim=(-55,45), ylim=(-55,45),
-           xticks=[], yticks=[], xlabel='', ylabel='')
+        ax.plot(df_x[buoy], df_y[buoy], color=color, marker=shape, ms=size, lw=0, edgecolor='k', edgewidth=0.5, transform=crs)
+    else:
+        ax.plot(df_x[buoy], df_y[buoy], color=color, marker=shape, ms=10, lw=0, edgecolor='k', edgewidth=0.5, transform=crs)
+        ax.text(df_x[buoy]-1.2e3, df_y[buoy]-1.4e3, num, transform=crs, color='w', fontsize=8)
 
 h = []
 l = []
 for color, label, m in zip(
     ['tab:red', 'tab:blue', 'powder blue', 'tab:green', 'w', 'lilac', 'gold', 'orange', 'gray'],
-    ['CO', 'L1', 'L2', 'L3', 'DN', 'left', 'right', 'distant', 'ahead'],
+    ['CO', 'L1', 'L2', 'L3', 'P', 'left', 'right', 'distant', 'ahead'],
     ['*', 's', 's', 's', 'o', 'o', 'o', 'o', 'o']):
     if label=='CO':
         s = 10
     else:
         s = 5
-    h.append(ax0.plot([],[], m=m, ms=s, lw=0, color=color, edgecolor='k'))
+    h.append(ax.plot([],[], m=m, ms=s, lw=0, color=color, edgecolor='k'))
     l.append(label)
-ax0.legend(h, l, loc='lr', ncols=2, order='F', pad=0.5, alpha=1)
-fig.format(title='MOSAiC Distributed Network', fontsize=12)
-fig.save('../figures/fig01_distributed_network_map.png', dpi=300)
+ax.legend(h[0:5], l[0:5], ncols=1, loc='ll')
+axs[0].legend([h[0]] + h[5:], [l[0]] + l[5:], ncols=1, loc='ll')
+axs[0].format(title='Extended DN')
+axs[1].format(title='Distributed Network')
 
+fig.save('../figures/fig01_distributed_network_map.png', dpi=300)

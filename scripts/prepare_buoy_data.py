@@ -9,6 +9,7 @@ Before running the script,
 import numpy as np
 import os
 import pandas as pd
+import pyproj
 from drifter import standard_qc, interpolate_buoy_track, compute_velocity
 
 #### Parameters #####
@@ -96,7 +97,21 @@ for sensor_id in buoy_data:
                         speed_window='3D',
                         verbose=False)   
     # Interpolate to hourly
+    # Need to add step in compute_velocity to allow for a different projection
+    # Should work as long as there's an "x" and "y" in the columns
+    
+    # (specifically '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs')
     if df_qc is not None:
         df_interp = interpolate_buoy_track(df_qc.where(~df_qc.flag).dropna(), freq='30min', maxgap_minutes=240)
+
+        proj_LL = 'epsg:4326' # WGS 84 Ellipsoid
+        proj_XY = '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs'
+        transform_to_ps = pyproj.Transformer.from_crs(proj_LL, proj_XY, always_xy=True)
+        x, y = transform_to_ps.transform(df_interp.longitude, df_interp.latitude)
+        df_interp['x_stere'] = x
+        df_interp['y_stere'] = y
+        df_interp['x'] = x
+        df_interp['y'] = y
         df_interp = compute_velocity(df_interp, rotate_uv = False, date_index=True, method='c')
+        df_interp.drop(['x', 'y'], axis=1, inplace=True)
         df_interp.to_csv(saveloc + filenames[sensor_id])

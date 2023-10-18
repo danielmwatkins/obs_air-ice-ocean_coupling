@@ -25,7 +25,7 @@ if download:
               'variable': ['mean_sea_level_pressure', '10m_u_component_of_wind', '10m_v_component_of_wind'],
               'date': list(pd.date_range(start_date, end_date, freq='1D').strftime('%Y-%m-%d')),
               'time': list(map("{:02d}:00".format, range(0,24))),
-              'area': [90, -180, 65, 180]}
+              'area': [90, -180, 50, 180]}
 
     fl = c.retrieve('reanalysis-era5-single-levels', params)
     saveloc = '../data/era5/'
@@ -45,7 +45,7 @@ if download:
                            'v_component_of_wind'],
               'date': list(pd.date_range(start_date, end_date, freq='1D').strftime('%Y-%m-%d')),
               'time': list(map("{:02d}:00".format, range(0,24))),
-              'area': [90, -180, 65, 180]}
+              'area': [90, -180, 50, 180]}
 
     fl = c.retrieve('reanalysis-era5-pressure-levels', params)
     saveloc = '../data/era5/'
