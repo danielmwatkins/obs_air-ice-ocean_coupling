@@ -142,7 +142,7 @@ fig, axs = pplt.subplots(width=6, nrows=2, ncols=2, share=True, span=False)#, pr
 
 idx_skip = 2
 
-plot_dates = ['2020-01-31 16:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
+plot_dates = ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 plot_dates = [pd.to_datetime(x) for x in plot_dates]
 
 for date, ax in zip(plot_dates, axs):
@@ -160,9 +160,9 @@ for date, ax in zip(plot_dates, axs):
                         era5_data['theta_925'].sel(time=date)['theta_e'],
                         levels=np.arange(235, 285, 5),
                         cmap='coolwarm', extend='both',
-                        alpha=0.75, cmap_kw={'cut': 0.1}, zorder=0)
+                        alpha=0.85, cmap_kw={'cut': 0.1}, zorder=0)
     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
-                levels=np.arange(972, 1020, 4), labels=True, zorder=2)
+                levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2)
     
     ax.quiver(local_xu, local_yv,
               era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
@@ -207,9 +207,9 @@ for date, ax in zip(plot_dates, axs):
 
     ax.plot(storm_track['x_stere']/1e3 - storm_track.loc[date, 'x_stere']/1e3,
             storm_track['y_stere']/1e3 - storm_track.loc[date, 'y_stere']/1e3,
-            color='gray2', lw=1, zorder=3, m='s', ms=1)
+            color='gray2', lw=1, zorder=3, m='^', ms=1)
 
-    wind_color = 'lime8'
+    wind_color = 'sea green'
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
                        color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
@@ -222,10 +222,14 @@ for date, ax in zip(plot_dates, axs):
          yticks=np.arange(-0.75e3, 0.8e3, 250), ytickminor=False)
 
 h, l = [], []
-for c, ls, label in zip(['k', wind_color, wind_color, 'gray2'],
+for c, ls, label in zip(['k', wind_color, wind_color, 'gray5'],
                     ['-', '--', '-', '-'],
                     ['SLP (hPa)', '16 m/s wind', '20 m/s wind', 'Storm track']):
-    h.append(ax.plot([],[],color=c, lw=2, ls=ls))
+    if label == 'SLP (hPa)':
+        lw = 1
+    else:
+        lw = 2
+    h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
     l.append(label)
 axs[0].legend(h, l, loc='ur', alpha=1, ncols=1) 
     
@@ -261,5 +265,6 @@ for ax, date in zip(axs, dates):
                levels=[15], zorder=2, labels=False)
     
     ax.format(title=date.strftime('%Y-%m-%d %H:%M'), titlesize=15)
+axs.format(abc=True)
 fig.colorbar(c, label='Sea level pressure (hPa)', loc='r', shrink=0.75)
 fig.save('../figures/fig02_slp_storms_overview.jpg', dpi=300)

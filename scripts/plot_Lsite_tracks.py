@@ -183,7 +183,7 @@ for ax, site in zip(axs, l_co_data):
    
     ax.format(yreverse=False, xreverse=False, xlabel='X coordinate (km)', ylabel='Y coordinate (km)', xlocator=2, ylocator=2,
               ultitle=site, ylim=(y0-dy, y0+dy), xlim=(x0-dx, x0+dx),
-              lrtitle='A: ' + date1.strftime('%b %d %H:%M') + '\n' + \
-                      'B: ' + date2.strftime('%b %d %H:%M'), abc=True)
+              lrtitle='A: ' + date1.strftime('%m/%d %H:%M') + '\n' + \
+                      'B: ' + date2.strftime('%m/%d %H:%M'), abc=True)
 axs[2].legend(loc='cr', ncols=1)
-fig.save('../figures/fig09_co_lsites_drift_wind_cusp.jpg', dpi=300)
+fig.save('../figures/fig06_co_lsites_drift_wind_cusp.jpg', dpi=300)
