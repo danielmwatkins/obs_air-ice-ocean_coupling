@@ -62,12 +62,15 @@ ts_B = slice('2020-01-29 18:00', '2020-02-01 00:00')
 # Add another set list and title when I add the extended DN
 for set_list, title, ts, dates in zip(
     [['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
-     ['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5']],
+     ['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
+     ['DN_full', 'left', 'right', 'distant'],
     ['fig09a_strainrate_timeseries.jpg',
-     'figS2a_strainrate_timeseries.jpg'],
-    [ts_A, ts_B],
+     'figS2a_strainrate_timeseries.jpg',
+     'figS3a_strainrate_timeseries.jpg'],
+    [ts_A, ts_B, ts_A],
     [zoom_plot_dates_A,
-     zoom_plot_dates_B]):
+     zoom_plot_dates_B,
+     zoom_plot_dates_A]):
 
     fig, axs = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
 

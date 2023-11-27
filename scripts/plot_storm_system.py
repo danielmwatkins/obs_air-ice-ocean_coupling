@@ -11,8 +11,6 @@ Requirements:
 - interpolated buoy data
 - era5 data
 """
-
-import cartopy.crs as ccrs
 import metpy.calc as mcalc
 from metpy.units import units
 import numpy as np
@@ -32,13 +30,9 @@ pplt.rc['title.bboxalpha'] = 1
 pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
-# Define reference coordinate system that matches the x/y for the ERA5 data and the buoys
-crs = ccrs.NorthPolarStereo(central_longitude=90, true_scale_latitude=70)
-
 # Data locations
 era5_dataloc = '../data/era5_regridded/'
 buoy_dataloc = '../data/interpolated_tracks/'
-sic_dataloc = '../data/'
 
 # Storm track generated in a different script
 storm_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True).dropna()    
@@ -52,26 +46,10 @@ metadata['filename'] = ['_'.join([x, str(y), z]) for
                                        metadata['IMEI'],
                                        metadata['Sensor ID'])]
 metadata.set_index('Sensor ID', inplace=True)
-
 files = os.listdir(buoy_dataloc)
 files = [f for f in files if f[0] not in ['.', 'm']]
 buoy_data = {f.split('_')[-1].replace('.csv', ''): pd.read_csv(buoy_dataloc + f,
             index_col=0, parse_dates=True) for f in files}
-
-# Select 
-full_time_series = [b for b in buoy_data if len(buoy_data[b].dropna())/len(buoy_data[b]) > 0.9]
-station_id = metadata.loc[:, 'DN Station ID']
-stations_already = []
-truncated_list = []
-for buoy in full_time_series:
-    if station_id[buoy] not in stations_already:
-        stations_already.append(station_id[buoy])
-        truncated_list.append(buoy)
-
-lat = pd.Series({buoy: buoy_data[buoy]['latitude'].median() for buoy in truncated_list})
-lon = pd.Series({buoy: buoy_data[buoy]['longitude'].median() for buoy in truncated_list})
-distant_buoys = lat[(lat < 87) | (lon < 80)].index.tolist()
-near_buoys = [b for b in truncated_list if b not in distant_buoys]
 
 ###### Defining the buoy groups ###########
 # Intend to put this in a separate file so all figure plots can access it
@@ -88,7 +66,6 @@ l_colors = {'2019T67': 'tab:blue',
 ##### Load ERA5 data #####
 # I use the metpy library here to calculate the equivalent potential temperature
 # Could replace with virtual potential temperature for consistency with Figure 5
-
 variables = ['msl', 'u10', 'v10', 'u_950', 'v_950', 'q_925', 't_925']
 savename = '2020-01-25_2020-02-05'
 era5_data = {var: xr.open_dataset(era5_dataloc + 'era5_' + var + '_regridded_' + savename + '.nc') for var in variables}
@@ -110,10 +87,9 @@ era5_data['theta_925'] = ds_theta
 # Rotate U and V (could move this into the regridding section)
 u = era5_data['u10']['u10']
 v = era5_data['v10']['v10']
-lon = u['longitude'] - 90 # Projected with central_longitude = 90, so this centers it
-lat = v['latitude']
-ustere = u * np.cos(np.deg2rad(lon)) - v * np.sin(np.deg2rad(lon))    
-vstere = u * np.sin(np.deg2rad(lon)) + v * np.cos(np.deg2rad(lon))
+lon = np.deg2rad(u['longitude'] - 90) # Projected with central_longitude = 90, so this centers it
+ustere = u * np.cos(lon) - v * np.sin(lon)    
+vstere = u * np.sin(lon) + v * np.cos(lon)
 era5_data['u_stere'] = xr.Dataset({'u_stere': ustere})
 era5_data['v_stere'] = xr.Dataset({'v_stere': vstere})
 era5_data['950_wind_speed'] = xr.Dataset({'wind_speed': 
@@ -121,20 +97,23 @@ era5_data['950_wind_speed'] = xr.Dataset({'wind_speed':
 
 
 plot_scale = 0.8e3 # Defines the figure size; units are kilometers
-fig, axs = pplt.subplots(width=6, nrows=2, ncols=2, share=True, span=False)#, proj='npstere', proj_kw={'lon_0': -45})
-# axs.format(land=True, boundinglat=75, latmax=90, lonlocator=np.arange(0, 361, 45), landzorder=1)
+fig, axs = pplt.subplots(width=6, nrows=2, ncols=2, share=True, span=False)
 
 idx_skip = 3
 plot_dates = ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 plot_dates = [pd.to_datetime(x) for x in plot_dates]
 
 for date, ax in zip(plot_dates, axs):
-    x0 = storm_track.loc[date, 'x_stere'] # replace with storm track
+    # Current position of the storm track is the centered data
+    x0 = storm_track.loc[date, 'x_stere'] 
     y0 = storm_track.loc[date, 'y_stere'] 
     X = era5_data['msl']['x_stere'].data
     Y = era5_data['msl']['y_stere'].data
     local_xu = ((X - x0)[::idx_skip, ::idx_skip])*1e-3
     local_yv = ((Y - y0)[::idx_skip, ::idx_skip])*1e-3
+    U = era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip]
+    V = era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip]
+    
 
     local_x = (X - x0)*1e-3
     local_y = (Y - y0)*1e-3
@@ -147,10 +126,7 @@ for date, ax in zip(plot_dates, axs):
     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                 levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2)
     
-    ax.quiver(local_xu, local_yv,
-              era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
-              era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip],
-              scale=250, width=1/500, headwidth=8)
+    ax.quiver(local_xu, local_yv, U, V, scale=250, width=1/500, headwidth=8)
 
     ax.format(title=date, ylabel='Y (km)', xlabel='X (km)', titlesize=12,
          xlim=(-plot_scale, plot_scale), ylim=(-plot_scale, plot_scale),
