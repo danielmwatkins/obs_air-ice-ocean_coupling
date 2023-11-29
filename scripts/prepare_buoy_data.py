@@ -99,11 +99,9 @@ for sensor_id in buoy_data:
     # Interpolate to hourly
     # Need to add step in compute_velocity to allow for a different projection
     # Should work as long as there's an "x" and "y" in the columns
-    
     # (specifically '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs')
     if df_qc is not None:
         df_interp = interpolate_buoy_track(df_qc.where(~df_qc.flag).dropna(), freq='30min', maxgap_minutes=240)
-
         proj_LL = 'epsg:4326' # WGS 84 Ellipsoid
         proj_XY = '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs'
         transform_to_ps = pyproj.Transformer.from_crs(proj_LL, proj_XY, always_xy=True)

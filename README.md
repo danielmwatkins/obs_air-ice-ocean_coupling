@@ -31,8 +31,8 @@ Key data components
 * `plot_maps.py` Produces Figure 1. Requires interpolated buoy tracks.
 * `plot_multi_storm_overview.py` Produces Figure 2. Requires gridded ERA5, AMSR2, and buoy data.
 * `plot_storm_system.py` Produces Figure 3. Requires gridded ERA5 and buoy data.
-* `plot_velocity_time_series.py`
-* `plot_deformation_time_series.py`
+* `plot_velocity_time_series.py` Produces the two components of Figure 7 and Figure S1 and merges them.
+* `plot_deformation_time_series.py` Produces the two components of Figure 9 and Figures S1 and S2 and merges them.
 * `plot_cusp_analysis.py`
     
 ## Instructions for obtaining the MOSAiC drifting buoy data

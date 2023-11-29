@@ -1,3 +1,12 @@
+"""Scripts for creating Figure 7, the velocity time series and the overview maps with wind speeds
+
+To-do items
+- Site specs and array info needs to be in the array_info.csv
+- L-sites should be marked as squares from that array
+
+
+"""
+
 import xarray as xr
 import os
 import numpy as np
@@ -8,13 +17,11 @@ from matplotlib.collections import PatchCollection
 import metpy.calc as mcalc
 from metpy.units import units
 import sys
-#sys.path.append('../scripts/')
 import drifter
 
 dataloc = '../data/interpolated_tracks/'
 era5_dataloc = '../data/era5_regridded/'
 
-dataloc = '../data/interpolated_tracks/'
 zoom_plot_dates_A= ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 zoom_plot_dates_A = [pd.to_datetime(x) for x in zoom_plot_dates_A]
 
@@ -40,6 +47,13 @@ site_specs = {'2019T67': ('tab:blue', 's', 7),
                '2019T65': ('powder blue', 's', 7),
                '2019S94': ('tab:green', 's', 7),
                '2019T66': ('tab:red', '*', 15)}
+
+array_info = pd.read_csv('../data/array_info.csv')
+array_info = {array: group.set_index('buoyID') for array, group in array_info.groupby('array_name')}
+array_info['DN_5']['line_style'] = [(1, (4, 1, 1, 1, 1, 1))]*len(array_info['DN_5'])
+array_info['l_sites']['color'] = 'tab:blue'
+array_info['l_sites']['line_width'] = 1.5
+
 
 ##### Velocity time series plots ########
 ts_A = slice('2020-01-30 20:00', '2020-02-02 02:00')
