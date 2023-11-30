@@ -170,7 +170,7 @@ for ax, site in zip(axs, l_co_data):
     
     ax.quiver(df.x_stere, df.y_stere, df.u_stere, df.v_stere, scale=2, label='Ice Drift', zorder=3)
     ax.quiver(df.x_stere, df.y_stere, df.u_stere_era5*0.02, df.v_stere_era5*0.02, scale=2, color='steelblue', label='ERA5 Wind')
-    ax.quiver(df.x_stere, df.y_stere, df.u_stere_wind*0.02, df.v_stere_wind*0.02, scale=2, color='light blue', label='Met City Wind', )
+    ax.quiver(df.x_stere, df.y_stere, df.u_stere_wind*0.02, df.v_stere_wind*0.02, scale=2, color='light blue', label='Observed Wind', )
 
     date1 = speed_min.loc[l_co_sites[site],'time_a']
     date2 = speed_min.loc[l_co_sites[site],'time_b']
