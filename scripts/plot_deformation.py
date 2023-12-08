@@ -97,10 +97,12 @@ for buoy in buoy_data:
         site_specs[buoy] = ('white', 'o', 5)
 
 ##### Load ERA5 data #####
-variables = ['msl', 'u10', 'v10']
+variables = ['msl', 'u10', 'v10', 'u_950', 'v_950']
 savename = '2020-01-25_2020-02-05'
 
 era5_data = {var: xr.open_dataset(era5_dataloc + 'era5_' + var + '_regridded_' + savename + '.nc') for var in variables}
+era5_data['950_wind_speed'] = xr.Dataset({'wind_speed': 
+                            np.sqrt(era5_data['u_950']['u_950']**2 + era5_data['v_950']['v_950']**2)})
 
 
 # Rotate U and V (could move this into the regridding section)
@@ -270,11 +272,20 @@ for case in cases:
         
             ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                         levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2, labels_kw = {'inline_spacing': -10})
-            
+
+            wind_color = 'sea green'
+            ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
+                       color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
+            ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
+                       color=[wind_color], levels=[20], zorder=4, labels=False)
+ 
+             
             ax.quiver(local_xu, local_yv,
                       era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
                       era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip],
                       scale=300, width=1/400, headwidth=4, color='tab:blue')
+        
+        
             # add buoy velocity quiver here
         
         else:
@@ -349,13 +360,29 @@ for case in cases:
               20,
               0,
               scale=300, headwidth=4, c = 'k', zorder=6, width=1/250)
+        
+       
+        
         ax.text(90, -220, '20 m/s wind', c='tab:blue', zorder=6)
         ax.text(90, -240, '20 cm/s ice', c='k', zorder=6)
         rec = Rectangle((35, -250), 250-35, 60, ) 
         pc = PatchCollection([rec], facecolor='w', alpha=1,
                              edgecolor='k', zorder=5)
         ax.add_collection(pc)
-                  
+
+        # Generate legend manually for finer control
+        h, l = [], []
+        for c, ls, label in zip(['k', wind_color, wind_color],
+                            ['-', '--', '-'],
+                            ['SLP (hPa)', '16 m/s wind', '20 m/s wind']):
+            if label == 'SLP (hPa)':
+                lw = 1
+            else:
+                lw = 2
+            h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
+            l.append(label)        
+        axs[0].legend(h, l, loc='ur', ncols=1)
+        
     fig.format(xreverse=False, yreverse=False)
     fig.save('../figures/' + title2, dpi=300)
 

@@ -159,10 +159,13 @@ dn_buoys = list(dist[dist <= 60e3].index)
 storm_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True).iloc[4:].dropna()    
 
 ##### Load ERA5 data #####
-variables = ['msl', 'u10', 'v10']
+variables = ['msl', 'u10', 'v10', 'u_950', 'v_950']
 savename = '2020-01-25_2020-02-05'
 
 era5_data = {var: xr.open_dataset(era5_dataloc + 'era5_' + var + '_regridded_' + savename + '.nc') for var in variables}
+era5_data['950_wind_speed'] = xr.Dataset({'wind_speed': 
+                            np.sqrt(era5_data['u_950']['u_950']**2 + era5_data['v_950']['v_950']**2)})
+
 
 
 # Rotate U and V (could move this into the regridding section)
@@ -212,7 +215,15 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
     
         ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                     levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2, labels_kw = {'inline_spacing': -5})
+        wind_color = 'sea green'
         
+        ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
+                   color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
+        ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
+                   color=[wind_color], levels=[20], zorder=4, labels=False)
+
+
+
         ax.quiver(local_xu, local_yv,
                   era5_data['u_stere'].sel(time=date)['u_stere'][::idx_skip, ::idx_skip],
                   era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip],
@@ -286,8 +297,21 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
                              edgecolor='k', zorder=5)
     ax.add_collection(pc)
     
-    axs.format(xreverse=False, yreverse=False, xlocator=[-250, -125, 0, 125, 250],
-              ylocator=[-250, -125, 0, 125, 250])#['d', 'e','f','g'])
+    # Generate legend manually for finer control
+    h, l = [], []
+    for c, ls, label in zip(['k', wind_color, wind_color],
+                        ['-', '--', '-'],
+                        ['SLP (hPa)', '16 m/s wind', '20 m/s wind']):
+        if label == 'SLP (hPa)':
+            lw = 1
+        else:
+            lw = 2
+        h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
+        l.append(label)        
+    axs[0].legend(h, l, loc='ur', ncols=1)    
+    
+    axs.format(xreverse=False, yreverse=False, xlocator=[-250, -125, 0, 125, 250], xrotation=89.99, # Weird bug - at 90, only some of the xlabels rotate
+              ylocator=[-250, -125, 0, 125, 250])
     for ax, label in zip(axs, ['d','e','f','g']):
         ax.format(ltitle=label)
     
@@ -310,8 +334,8 @@ def merge_images(files, savename):
     
     x_offset = 0
     for im in images:
-      new_im.paste(im, (x_offset,0))
-      x_offset += im.size[0]
+        new_im.paste(im, (x_offset,0))
+        x_offset += im.size[0]
     
     new_im.save(savename)
 
