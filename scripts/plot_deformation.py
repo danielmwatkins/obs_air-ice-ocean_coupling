@@ -122,11 +122,8 @@ strain_rates = {}
 for set_name in array_info:
     buoys = array_info[set_name].index[::-1]
     strain_rates[set_name] = drifter.compute_strain_rate_components(buoys, buoy_data, position_uncertainty=10)
-print(strain_rates.keys())
 
 """Based on this stackoverflow response: https://stackoverflow.com/questions/30227466/combine-several-images-horizontally-with-python"""
-
-
 def merge_images(files, savename):
     """Concatenates images horizontally"""
     images = [Image.open(x) for x in files]
@@ -157,7 +154,7 @@ cases = {'C1_DN': {'polygons': ['DN_full', 'left', 'right', 'l_sites', 'DN_1', '
                    'xlim': (-55, 55)
                   },
          'C2_DN': {'polygons': ['DN_full', 'left', 'right', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
-                   'fignumber': '09',
+                   'fignumber': '10',
                    'suffix': 'C2_dn',
                    'time_slice': ts_C2,
                    'zoom_times': zoom_plot_dates_C2,
@@ -175,7 +172,7 @@ cases = {'C1_DN': {'polygons': ['DN_full', 'left', 'right', 'l_sites', 'DN_1', '
                     'xlim': (-250, 250)
                    },
          'C2_large': {'polygons': ['DN_full', 'left', 'right', 'l_sites'],
-                   'fignumber': 'S3',
+                   'fignumber': '09',
                    'suffix': 'C2_large',
                    'time_slice': ts_C2,
                    'zoom_times': zoom_plot_dates_C2,
@@ -287,7 +284,18 @@ for case in cases:
         
         
             # add buoy velocity quiver here
-        
+            plot_buoys = []
+            for polygon in cases[case]['polygons']:
+                for buoy in buoy_data: 
+                    if buoy in array_info[polygon].index:
+                        plot_buoys.append(buoy)
+#            print(plot_buoys)
+	     
+            ax.quiver(df_x.loc[date, plot_buoys]/1e3  - x_dn,
+                  df_y.loc[date, plot_buoys]/1e3 - y_dn,
+                  df_u.loc[date, plot_buoys]*100,
+                  df_v.loc[date, plot_buoys]*100,
+                  scale=300, headwidth=4, c = 'k', zorder=6, width=1/250)        
         else:
             # Plot velocity anomalies for all buoys
             df_ua = df_u.loc[date, :] - df_u.loc[date, co_buoy]
