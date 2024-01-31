@@ -621,3 +621,65 @@ def compute_strain_rate_components(buoys, data, position_uncertainty, time_delta
         index=X_data.index)
     
     return results_df
+def regrid_buoy_track(buoy_df, precision='5min'):
+    """Applies interp1d with cubic splines to align the buoy track to a 5 min grid.
+    Assumes that the dataframe buoy_df has a datetime index. Errors are reported by
+    computing the difference between the interpolating curve and the original
+    data points, then linearly interpolating the error to the new grid. 
+    Calculations carried out in north polar stereographic coordinates.
+    """
+
+    projIn = 'epsg:4326' # WGS 84 Ellipsoid
+    projOut = 'epsg:3413' # NSIDC Polar Stereographic
+    transform_to_xy = pyproj.Transformer.from_crs(projIn, projOut, always_xy=True)
+    transform_to_ll = pyproj.Transformer.from_crs(projOut, projIn, always_xy=True)
+    
+    lon = buoy_df.longitude.values
+    lat = buoy_df.latitude.values
+    
+    xvar = 'x_stere'
+    yvar = 'y_stere'
+    
+    x, y = transform_to_xy.transform(lon, lat)
+    buoy_df[xvar] = x
+    buoy_df[yvar] = y
+
+
+    t = pd.Series(buoy_df.index)
+    t0 = t.min()
+    t_seconds = pd.to_timedelta(t - t0).dt.total_seconds()
+
+    tnew = t.round(precision)
+     # Drop data points that are closer than <precision> to each other
+    tnew = tnew.loc[~tnew.duplicated()]
+    
+    tnew_seconds = pd.to_timedelta(tnew - t0).dt.total_seconds()
+
+    X = buoy_df[[xvar, yvar]].T.values
+    Xnew = interp1d(t_seconds, X, bounds_error=False, kind='cubic')(tnew_seconds)
+    idx = ~np.isnan(Xnew.sum(axis=0))
+    buoy_df_new = pd.DataFrame(data=np.round(Xnew.T, 5), 
+                          columns=[xvar, yvar],
+                          index=tnew)
+    buoy_df_new.index.names = ['datetime']
+
+    # Next, get the absolute position error
+    Xnew_at_old = interp1d(
+        tnew_seconds[idx], Xnew[:, idx],
+        bounds_error=False, kind='cubic')(t_seconds)
+    X_err = pd.Series(
+        np.sqrt(np.sum((X - Xnew_at_old)**2, axis=0)), t).ffill().bfill()
+
+    # Finally, assign absolute position error to the new dataframe
+    buoy_df_new['sigma_x_regrid'] = interp1d(t_seconds, X_err,
+                                             bounds_error=False,
+                                             kind='nearest')(tnew_seconds)
+
+    x = buoy_df_new[xvar].values
+    y = buoy_df_new[yvar].values
+
+    lon, lat = transform_to_ll.transform(x, y)
+    buoy_df_new['longitude'] = lon
+    buoy_df_new['latitude'] = lat
+
+    return buoy_df_new
