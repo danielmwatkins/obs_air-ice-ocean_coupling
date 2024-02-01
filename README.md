@@ -31,27 +31,15 @@ The data preparation scripts require the following datasets to be downloaded. Fo
     - depends on array_info
 * calculate_cusp_timing.py
 
-## Plotting
+## Figures
+### Figure 1: Map of the MOSAiC drifting buoy array
+![Two panel map showing the position of the MOSAiC drifting buoys on February 1, 2020. The left panel shows the region from approximately 65 to 115 degrees E in longitude and latitudes from 79 degrees N to 89.5 N. The central observatory is indicated by a star, and the positions of 13 drifters comprising the MOSAiC Extended DN surround it. On the right, a zoomed in map shows an additional set of approximately 50 buoys and three L sites, which are sites with many autonomous sensors.](/figures/fig01_distributed_network_map.png?raw=true "Map of the MOSAiC Distributed Network")
 * `plot_maps.py` Produces Figure 1. Requires interpolated buoy tracks.
 * `plot_multi_storm_overview.py` Produces Figure 2. Requires gridded ERA5, AMSR2, and buoy data.
 * `plot_storm_system.py` Produces Figure 3. Requires gridded ERA5 and buoy data.
 * `plot_velocity_time_series.py` Produces the two components of Figure 7 and Figure S1 and merges them.
 * `plot_deformation_time_series.py` Produces the two components of Figure 9 and Figures S1 and S2 and merges them.
 * `plot_cusp_analysis.py`
-    
-## Instructions for obtaining the MOSAiC drifting buoy data
-I downloaded the data from the Arctic Data Center on YYYYMMDD. The script drifter.py contains tools for the buoy analysis, QC, and interpolation. The script prepare_buoy_data.py uses the drifter.py tools to prepare the data and saves it in the folder 'data'.
-
-## Instructions for obtaining the ERA5 data
-You'll need the cdsapi installed. For CDS API you have to take some steps to link your CDS account. 
-
-Components
-- transform data to polar stereographic coordinates
-- find path of low and save it
-- potentially get shapefile for february sea ice extent for plotting
-- potentially get shapefiles for coastlines; it would be good to have those on the overview plots too
-
-Current version makes a separate dataset for each variable. Script can be customized with different start and end dates. It uses xESMF to re-grid the data to a 25-km polar stereographic grid. 
 
 ## To-do items
 * plot_maps.py
