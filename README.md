@@ -1,7 +1,10 @@
-# Observations of the air-sea ice-ocean response to a winter cyclone
+# Air-Ice-Ocean Coupling During a Strong Mid-Winter Cyclone: Observations
 This repository contains code used in the analysis of sea ice motion and storm structure during a pair of winter cyclones observed during the MOSAiC Arctic Expedition in January and February 2020. The results produced here are a portion of a collaborative project funded by the US Department of Energy. Results have been shared in numerous scientific conferences, and will be available in a peer-reviewed journal article in the _Journal of Geophysical Research: Atmospheres_ in the near future. A poster summarizing the results was presented at the American Geophysical Union 2023 Annual Meeting and can be viewed here: [Sea Ice and Ocean Response to a Strong Mid-Winter Cyclone in the Arctic Ocean](https://doi.org/10.22541/essoar.170365235.53452562/v1)
 
+## Setting up a computing environment
+The analysis was carried out using open-source libraries for Python 3.9. The computing environment can be recreated using the package list in the file `airsea.yml`. If you do not already have an installation of the environment manager `conda`, follow the instructions to download [microconda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html)(a minimal installation of the conda environment manager). You can then create an environment with the necessary packages by running this code in a terminal window:
 
+```conda env create --file airsea.yml```
 
 ## Preparing data
 The data preparation scripts require the following datasets to be downloaded. For ERA5, a download script is included. Using this script requires an account at the Copernicus Data Store. Similarly, a download script for the sigma6 radar product is provided.
@@ -34,6 +37,8 @@ The data preparation scripts require the following datasets to be downloaded. Fo
 ## Figures
 ### Figure 1: Map of the MOSAiC drifting buoy array
 ![Two panel map showing the position of the MOSAiC drifting buoys on February 1, 2020. The left panel shows the region from approximately 65 to 115 degrees E in longitude and latitudes from 79 degrees N to 89.5 N. The central observatory is indicated by a star, and the positions of 13 drifters comprising the MOSAiC Extended DN surround it. On the right, a zoomed in map shows an additional set of approximately 50 buoys and three L sites, which are sites with many autonomous sensors.](/figures/fig01_distributed_network_map.png?raw=true "Map of the MOSAiC Distributed Network")
+
+
 * `plot_maps.py` Produces Figure 1. Requires interpolated buoy tracks.
 * `plot_multi_storm_overview.py` Produces Figure 2. Requires gridded ERA5, AMSR2, and buoy data.
 * `plot_storm_system.py` Produces Figure 3. Requires gridded ERA5 and buoy data.
