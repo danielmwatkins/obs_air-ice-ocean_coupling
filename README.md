@@ -1,21 +1,24 @@
 # Observations of the air-sea ice-ocean response to a winter cyclone
+This repository contains code used in the analysis of sea ice motion and storm structure during a pair of winter cyclones observed during the MOSAiC Arctic Expedition in January and February 2020. The results produced here are a portion of a collaborative project funded by the US Department of Energy. Results have been shared in numerous scientific conferences, and will be available in a peer-reviewed journal article in the _Journal of Geophysical Research: Atmospheres_ in the near future. A poster summarizing the results was presented at the American Geophysical Union 2023 Annual Meeting and can be viewed here: (Sea Ice and Ocean Response to a Strong Mid-Winter Cyclone in the Arctic Ocean)[https://doi.org/10.22541/essoar.170365235.53452562/v1]
 
-This repository contains the code to reproduce the analysis of sea ice motion and storm structure. The scripts can be divided into code for obtaining and preparing the data and code for carrying out the analysis of the data. Code is subject to change! 
 
 Key data components
-1. Drifting buoy dataset
-2. Meteorological data from flux towers and sleds
-3. Meteorological data from ERA5 reanalysis
-4. Sea ice concentration from AMSR Unified 12 km
 
 ## Parameter files
 * `array_info.csv` Table containing the buoys used in the deformation arrays, and the color scheme.
-* `buoy_info.csv`. TBD table with the buoy parameters, used to make table for manuscript.
+* `buoy_info.csv`. TBD table with the buoy parameters, used to make a table for manuscript.
 
 ## Utilities
 * `drifter.py` Functions for processing the drifting buoy data
 
 ## Preparing data
+The data preparation scripts require the following datasets to be downloaded. For ERA5, a download script is included. Using this script requires an account at the Copernicus Data Store. Similarly, a download script for the sigma6 radar product is provided.
+1. Drifting buoy dataset: (Bliss et al. data paper)[https://www.nature.com/articles/s41597-023-02311-y]
+2. Meteorological data from flux towers and sleds: (Cox et al. data paper)[https://www.nature.com/articles/s41597-023-02415-5]
+3. Meteorological data from ERA5 reanalysis: (Single level)[https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=overview] and (pressure level)[https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-pressure-levels?tab=overview] data from the Copernicus Data Store
+4. Sea ice concentration from AMSR Unified 12 km: (National Snow and Ice Data Center)[https://nsidc.org/data/au_si12/versions/1]
+5. Sea ice sigma 6 radar: (Krumpen et al. (2021), Pangaea Data Repository)[https://doi.pangaea.de/10.1594/PANGAEA.929435]
+
 * `prepare_buoy_data.py` Applies `standard_qc` and `interpolate_buoy_track` funtions from the `drifter.py` file to the MOSAiC buoy data files from the Arctic Data Center. Trajectories are then saved to the folder `data/interpolated_tracks/`.
 * `prepare_era_data.py` Downloads ERA5 data from 1/25 to 2/05 and saves it, then uses xesmf to regrid onto the NSIDC polar stereographic grid.
 * `compile_amsr.py` Reads in the daily 12 km AMSR data obtained from NSIDC and compiles the files into a single netcdf file.
