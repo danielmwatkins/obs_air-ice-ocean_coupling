@@ -38,29 +38,18 @@ The data preparation scripts require the following datasets to be downloaded. Fo
 ### Figure 1: Map of the MOSAiC drifting buoy array
 ![Two panel map showing the position of the MOSAiC drifting buoys on February 1, 2020. The left panel shows the region from approximately 65 to 115 degrees E in longitude and latitudes from 79 degrees N to 89.5 N. The central observatory is indicated by a star, and the positions of 13 drifters comprising the MOSAiC Extended DN surround it. On the right, a zoomed in map shows an additional set of approximately 50 buoys and three L sites, which are sites with many autonomous sensors.](/figures/fig01_distributed_network_map.png?raw=true "Map of the MOSAiC Distributed Network")
 
+Produced by `plot_maps.py`. Requires interpolated buoy tracks.
 
-* `plot_maps.py` Produces Figure 1. Requires interpolated buoy tracks.
-* `plot_multi_storm_overview.py` Produces Figure 2. Requires gridded ERA5, AMSR2, and buoy data.
-* `plot_storm_system.py` Produces Figure 3. Requires gridded ERA5 and buoy data.
+### Figure 2
+* `plot_multi_storm_overview.py` Requires gridded ERA5, AMSR2, and buoy data.
+
+### Figure 3
+* `plot_storm_system.py` Requires gridded ERA5 and buoy data.
+
+### Figure 6
+### Figure 7
+### Figure 9
+###
 * `plot_velocity_time_series.py` Produces the two components of Figure 7 and Figure S1 and merges them.
 * `plot_deformation_time_series.py` Produces the two components of Figure 9 and Figures S1 and S2 and merges them.
 * `plot_cusp_analysis.py`
-
-## To-do items
-* plot_maps.py
-    - add dependence on array_info.csv
-    - add scale bar for zoomed in map
-* plot_storm_system.py
-    - add dependence on plot_times.csv
-    - add dependence on array_info.csv
-* plot_velocity_time_series.py
-    - add dependence on plot_times.csv
-    - set up multipanel plot to show the 4 panel display with wind direction
-* plot_deformation_time_series.py
-    - depends on plot_times.csv
-    - depends on array_info.csv
-    - produce multipanel plot with 4 panel display with velocity anomalies
-* plot_cusp_analysis.py
-    - scatter plot with time series of reversals
-    - trajectory with wind and ice drift arrows
-    - anomaly trajectories - i.e., trajectory minus origin
