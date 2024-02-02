@@ -29,11 +29,6 @@ The data preparation scripts require the following datasets to be downloaded. Fo
 ## Utilities
 * `drifter.py` Functions for processing the drifting buoy data
 
-## Calculations
-* calculate_deformation.py
-    - depends on array_info
-* calculate_cusp_timing.py
-
 ## Figures
 ### Figure 1: Map of the MOSAiC drifting buoy array
 ![Two panel map showing the position of the MOSAiC drifting buoys on February 1, 2020. The left panel shows the region from approximately 65 to 115 degrees E in longitude and latitudes from 79 degrees N to 89.5 N. The central observatory is indicated by a star, and the positions of 13 drifters comprising the MOSAiC Extended DN surround it. On the right, a zoomed in map shows an additional set of approximately 50 buoys and three L sites, which are sites with many autonomous sensors.](/figures/fig01_distributed_network_map.png?raw=true "Map of the MOSAiC Distributed Network")
@@ -47,9 +42,13 @@ Produced by `plot_maps.py`. Requires interpolated buoy tracks.
 * `plot_storm_system.py` Requires gridded ERA5 and buoy data.
 
 ### Figure 6
+`plot_Lsite_tracks.py` Plots the 4 panels showing ERA5 wind, observed wind, and drift speed, and the two motion cusps. Requires companion figure to merge for the final figure.
+
 ### Figure 7
-### Figure 9
-###
-* `plot_velocity_time_series.py` Produces the two components of Figure 7 and Figure S1 and merges them.
-* `plot_deformation_time_series.py` Produces the two components of Figure 9 and Figures S1 and S2 and merges them.
-* `plot_cusp_analysis.py`
+`plot_DN_trajectories.py` Shows the curvature of the trajectories and the cusp timing.
+
+### Figure 8
+`plot_velocity_time_series.py` Produces the two components of Figure 7 and Figure S1 and merges them.
+
+### Figure 9 and 10
+`plot_deformation_time_series.py` Produces the two components of Figure 9 and Figures S1 and S2 and merges them.
