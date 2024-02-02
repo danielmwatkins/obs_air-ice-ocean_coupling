@@ -60,8 +60,8 @@ ts_A = slice('2020-01-30 20:00', '2020-02-02 02:00')
 ts_B = slice('2020-01-29 18:00', '2020-02-01 00:00')
 
 for ts, dates, title in zip([ts_A, ts_B], [zoom_plot_dates_A, zoom_plot_dates_B],
-                    ['../figures/fig07a_velocity_timeseries_ice_stereographic_uv.png',
-                     '../figures/figS1a_velocity_timeseries_ice_stereographic_uv.png']):
+                    ['../figures/subplots/fig07a_velocity_timeseries_ice_stereographic_uv.png',
+                     '../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.png']):
     fig, axs = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
     for var, ax in zip(['u', 'v', 'speed'], axs):
         for b in buoy_data:
@@ -195,8 +195,8 @@ pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
 for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_dates], 
-                               ['../figures/fig07b_snapshot_drift_and_wind.png',
-                                '../figures/figS1b_snapshot_drift_and_wind.png',
+                               ['../figures/subplots/fig07b_snapshot_drift_and_wind.png',
+                                '../figures/subplots/figS1b_snapshot_drift_and_wind.png',
                                 '../figures/figSX_snapshot_drift_and_wind_analysis.png']):
     fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False, spanx=False)
     for date, ax in zip(dates, axs):
@@ -340,13 +340,13 @@ def merge_images(files, savename):
     new_im.save(savename)
 
 
-# Fig 6: Velocity
-merge_images(['../figures/fig07a_velocity_timeseries_ice_stereographic_uv.png',
+# Fig 7: Velocity
+merge_images(['../figures/subplots/fig07a_velocity_timeseries_ice_stereographic_uv.png',
              # '../figures/fig07b_snapshot_drift_and_wind.jpg',
              '../figures/collaborators/Fig7d_g_frontal_isotach_analysis.png'],
              '../figures/fig07_velocity.png')
 
-merge_images(['../figures/figS1a_velocity_timeseries_ice_stereographic_uv.png',
-              '../figures/figS1b_snapshot_drift_and_wind.png'],
+merge_images(['../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.png',
+              '../figures/subplots/figS1b_snapshot_drift_and_wind.png'],
              '../figures/figS1_velocity.png')
 

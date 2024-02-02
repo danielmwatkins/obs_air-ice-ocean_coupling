@@ -1,4 +1,4 @@
-"""Plots for analyzing the sudden changes in direction. Should split into parts that produce a dataframe and parts that do the plotting."""
+"""Figures showing the drift reversal times for the L cites and Met City. Also contains function to merge Ola's plot with mine."""
 import pandas as pd
 import numpy as np
 import proplot as pplt
@@ -14,8 +14,6 @@ l_co_sites = {'L1': '2019T67', # L1 / T67 / asfs 40
            'Met City': '2019T66'}
 ts = slice('2020-01-30 00:00', '2020-02-02 00:00')
 dataloc = '../data/interpolated_tracks/'
-
-
 
 files = os.listdir(dataloc)
 files = [f for f in files if f != '.DS_Store']
@@ -152,9 +150,10 @@ speed_min = pd.DataFrame({'time_a': speed_min_a,
 
 
 ts = slice('2020-01-30 12:00', '2020-02-01 12:00')
-fig, axs = pplt.subplots(ncols=4, nrows=1, share=False, aspect=1, width=10)
-for ax, site in zip(axs, l_co_data):
 
+fig, axs = pplt.subplots(ncols=4, nrows=1, share=False, aspect=1, width=7)
+for ax, letter, site in zip(axs, ['a)', 'b)', 'c)', 'd)'], l_co_data):
+    h = []
     df = l_co_data[site].copy().resample('1H').asfreq()
     df['x_stere'] /= 1e3
     df['y_stere'] /= 1e3
@@ -167,10 +166,11 @@ for ax, site in zip(axs, l_co_data):
     dx = 3.5
     y0 = 0.5*(ymax + ymin)
     x0 = 0.5*(xmax + xmin)
+
     
-    ax.quiver(df.x_stere, df.y_stere, df.u_stere, df.v_stere, scale=2, label='Ice Drift', zorder=3)
-    ax.quiver(df.x_stere, df.y_stere, df.u_stere_era5*0.02, df.v_stere_era5*0.02, scale=2, color='steelblue', label='ERA5 Wind')
-    ax.quiver(df.x_stere, df.y_stere, df.u_stere_wind*0.02, df.v_stere_wind*0.02, scale=2, color='light blue', label='Observed Wind', )
+    h.append(ax.quiver(df.x_stere, df.y_stere, df.u_stere, df.v_stere, scale=2, label='Ice drift', zorder=3))
+    h.append(ax.quiver(df.x_stere, df.y_stere, df.u_stere_era5*0.02, df.v_stere_era5*0.02, scale=2, color='steelblue', label='ERA5 wind'))
+    h.append(ax.quiver(df.x_stere, df.y_stere, df.u_stere_wind*0.02, df.v_stere_wind*0.02, scale=2, color='light blue', label='Observed wind'))
 
     date1 = speed_min.loc[l_co_sites[site],'time_a']
     date2 = speed_min.loc[l_co_sites[site],'time_b']
@@ -181,9 +181,44 @@ for ax, site in zip(axs, l_co_data):
         ax.text(x + 0.25,  y, label, color='r')
 
    
-    ax.format(yreverse=False, xreverse=False, xlabel='X coordinate (km)', ylabel='Y coordinate (km)', xlocator=2, ylocator=2,
-              ultitle=site, ylim=(y0-dy, y0+dy), xlim=(x0-dx, x0+dx),
+    ax.format(yreverse=False, xreverse=False, xlabel='X coordinate (km)', ylabel='', xlocator=2, ylocator=2,
+              ultitle=letter + ' ' + site, ylim=(y0-dy, y0+dy), xlim=(x0-dx, x0+dx),
               lrtitle='A: ' + date1.strftime('%m/%d %H:%M') + '\n' + \
-                      'B: ' + date2.strftime('%m/%d %H:%M'), abc=True)
-axs[2].legend(loc='cr', ncols=1)
-fig.save('../figures/fig06_co_lsites_drift_wind_cusp.jpg', dpi=300)
+                      'B: ' + date2.strftime('%m/%d %H:%M'), abc=False)
+axs[0].format(ylabel='Y coordinate (km)')
+fig.legend(h, ['Ice drift', 'ERA5 wind', 'Observed wind'], loc='b', ncols=3)
+fig.save('../figures/subplots/fig06abcd_co_lsites_drift_wind_cusp.png', dpi=300)
+
+
+"""Based on this stackoverflow response: https://stackoverflow.com/questions/30227466/combine-several-images-horizontally-with-python"""
+import sys
+from PIL import Image
+
+def merge_images(files, savename):
+    """Concatenates images vertically. Only expects two images."""
+    images = [Image.open(x) for x in files]
+    widths, heights = zip(*(i.size for i in images))    
+    total_height = sum(heights)
+    max_width = max(widths)
+    for idx in range(len(images)):
+        im = images[idx]
+        if im.size[0] != max_width:
+            new_height = int(im.size[1]*(max_width/im.size[0]))
+            im = im.resize((max_width, new_height))    
+        images[idx] = im
+    widths, heights = zip(*(i.size for i in images))    
+    total_height = sum(heights)
+    max_width = max(widths)    
+    
+    new_im = Image.new('RGB', (max_width, total_height))
+    
+    y_offset = 0
+    for im in images:
+        new_im.paste(im, (0, y_offset))
+        y_offset += im.size[1]
+    
+    new_im.save(savename)
+
+merge_images(['../figures/subplots/fig06abcd_co_lsites_drift_wind_cusp.png',
+             '../figures/collaborators/Fig6_e_f_wind_floe_relationships_Jan30_Feb3.png'],
+             '../figures/fig06_lsites_windrel.png')
