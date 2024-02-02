@@ -11,6 +11,8 @@ Requirements:
 - interpolated buoy data
 - era5 data
 """
+from matplotlib.patches import Rectangle
+from matplotlib.collections import PatchCollection
 import metpy.calc as mcalc
 from metpy.units import units
 import numpy as np
@@ -180,6 +182,19 @@ for date, ax in zip(plot_dates, axs):
               xlim=(-plot_scale, plot_scale), ylim=(-plot_scale, plot_scale),
               xticks=np.arange(-0.75e3, 0.8e3, 250), xtickminor=False, xrotation=90,
               yticks=np.arange(-0.75e3, 0.8e3, 250), ytickminor=False)
+
+# Vector legend
+# Need to manually set the location
+ax.quiver(120,
+          -640,
+          20,
+          0,
+          scale=300, headwidth=4, c = 'tab:blue', zorder=6, width=1/250)
+ax.text(250, -670, '20 m/s wind', c='tab:blue', zorder=6)
+rec = Rectangle((80, -750), 700, 220) 
+pc = PatchCollection([rec], facecolor='w', alpha=1,
+                         edgecolor='k', zorder=5)
+ax.add_collection(pc)
 
 # Generate legend manually for finer control
 h, l = [], []
