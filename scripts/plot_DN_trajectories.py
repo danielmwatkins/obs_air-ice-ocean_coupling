@@ -171,4 +171,4 @@ l = ['CO', 'L-sites', 'P-sites']
 axs[1].legend(h, l, loc='lr', ncols=1)
 
 
-fig.save('../figures/fig08_trajectories_01-31_to_02-02.jpg', dpi=300)
+fig.save('../figures/fig07_trajectories_01-31_to_02-02.jpg', dpi=300)
