@@ -23,7 +23,7 @@ era5_dataloc = '../data/era5_regridded/'
 ts_C1 = slice('2020-01-27 18:00', '2020-02-01 00:00')
 ts_C2 = slice('2020-01-30 20:00', '2020-02-02 02:00')
 
-zoom_plot_dates_C1 = [pd.to_datetime(x) for x in ['2020-01-30 05:00', '2020-01-30 11:00', '2020-01-30 18:00', '2020-01-31 04:00']]
+zoom_plot_dates_C1 = [pd.to_datetime(x) for x in ['2020-01-29 23:00','2020-01-30 05:00', '2020-01-30 11:00', '2020-01-30 18:00']]
 zoom_plot_dates_C2 = [pd.to_datetime(x) for x in ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']]
 
 # These are used for coloring dots on the map
@@ -122,7 +122,7 @@ strain_rates = {}
 for set_name in array_info:
     buoys = array_info[set_name].index[::-1]
     strain_rates[set_name] = drifter.compute_strain_rate_components(buoys, buoy_data, position_uncertainty=10)
-
+    strain_rates[set_name].to_csv('../data/strain_rates/' + set_name + '.csv')
 """Based on this stackoverflow response: https://stackoverflow.com/questions/30227466/combine-several-images-horizontally-with-python"""
 def merge_images(files, savename):
     """Concatenates images horizontally"""
@@ -144,7 +144,7 @@ def merge_images(files, savename):
 
 #### Plot groups ######
 # Each case to plot includes 
-cases = {'C1_DN': {'polygons': ['DN_full', 'left', 'right', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
+cases = {'C1_DN': {'polygons': ['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
                    'fignumber': 'S1',
                    'suffix': 'C1_dn',
                    'time_slice': ts_C1,
@@ -153,7 +153,7 @@ cases = {'C1_DN': {'polygons': ['DN_full', 'left', 'right', 'l_sites', 'DN_1', '
                    'ylim': (-55, 55), 
                    'xlim': (-55, 55)
                   },
-         'C2_DN': {'polygons': ['DN_full', 'left', 'right', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
+         'C2_DN': {'polygons': ['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
                    'fignumber': '10',
                    'suffix': 'C2_dn',
                    'time_slice': ts_C2,
@@ -221,15 +221,15 @@ for case in cases:
         axs[0].axhline(0, color='k', lw=0.5) 
         axs[2].axhline(0, color='k', lw=0.5)
         
-        axs[0].format(ultitle='divergence', ylabel='$\\nabla \cdot \vec u$ (s$^{-1} \\times 10^{-6}$)', ltitle='a',
+        axs[0].format(ultitle='divergence', ylabel='$\\nabla \cdot \mathbf{u}$ (s$^{-1} \\times 10^{-6}$)', ltitle='a',
                      ylim=(-3, 4.5))
         axs[1].format(ultitle='max. shear strain rate', ylabel='$\epsilon_{II}$ (s$^{-1}\\times 10^{-6}$)', ltitle='b',
                      ylim=(0, 3.9))
         axs[2].format(ultitle='vorticity', ylim=(-8.5, 7),
-                     ylabel='$\\nabla \\times \vec u$ (s$^{-1}\\times 10^{-6}$)', ltitle='c')
+                     ylabel='$\\nabla \\times \mathbf{u}$ (s$^{-1}\\times 10^{-6}$)', ltitle='c')
     axs[2].legend(loc='ll', ncols=3, order='F')
     axs.format(xrotation=45, xlabel='', xminorlocator=1/12, xgridminor=True)
-    fig.save('../figures/' + title1, dpi=300)
+    fig.save('../figures/subplots/' + title1, dpi=300)
     pplt.close(fig)
 
     title2 = 'fig' + cases[case]['fignumber'] + 'b_velocity_snapshot_' + cases[case]['suffix'] + '.jpg'
@@ -392,8 +392,8 @@ for case in cases:
         axs[0].legend(h, l, loc='ur', ncols=1)
         
     fig.format(xreverse=False, yreverse=False)
-    fig.save('../figures/' + title2, dpi=300)
+    fig.save('../figures/subplots/' + title2, dpi=300)
 
-    merge_images(['../figures/' + title1,
-              '../figures/' + title2],
+    merge_images(['../figures/subplots/' + title1,
+              '../figures/subplots/' + title2],
              '../figures/fig' + cases[case]['fignumber'] + '_deformation.jpg')

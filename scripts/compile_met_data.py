@@ -17,8 +17,6 @@ for source in ['metcity', 'asfs40', 'asfs50', 'asfs30']:
     dfs = []
     for file in files:
         with xr.open_dataset(dataloc + source + '/data/' + file) as ds:
-#             if file == files[0]:
-#                 print([v for v in ds.variables])
             if source == 'metcity':
                 variables = ['lat_tower', 'lon_tower', 'tower_heading', 'atmos_pressure_2m',
                              'temp_2m', 'temp_6m', 'temp_10m',
@@ -38,7 +36,9 @@ for source in ['metcity', 'asfs40', 'asfs50', 'asfs30']:
             else:
                 df.rename({'lat': 'latitude', 'lon': 'longitude'}, axis=1, inplace=True)
             dfs.append(df.loc[:, [v for v in df.columns if v[-2:] != 'qc']])
-    pd.concat(dfs).to_csv('../data/met_data/' + source + '.csv')
+    df_all = pd.concat(dfs)
+    df_all = df_all.sort_index()
+    df_all.to_csv('../data/met_data/' + source + '.csv')
     readme = []
     for attr in ds.attrs:
         readme.append(attr + ': ' + ds.attrs[attr])
