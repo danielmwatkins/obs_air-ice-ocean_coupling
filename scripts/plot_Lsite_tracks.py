@@ -187,7 +187,7 @@ for ax, letter, site in zip(axs, ['a)', 'b)', 'c)', 'd)'], l_co_data):
                       'B: ' + date2.strftime('%m/%d %H:%M'), abc=False)
 axs[0].format(ylabel='Y coordinate (km)')
 fig.legend(h, ['Ice drift', 'ERA5 wind', 'Observed wind'], loc='b', ncols=3)
-fig.save('../figures/subplots/fig06abcd_co_lsites_drift_wind_cusp.png', dpi=300)
+fig.save('../figures/subplots/fig06abcd_co_lsites_drift_wind_cusp.jpg', dpi=300)
 
 
 """Based on this stackoverflow response: https://stackoverflow.com/questions/30227466/combine-several-images-horizontally-with-python"""
@@ -219,6 +219,6 @@ def merge_images(files, savename):
     
     new_im.save(savename)
 
-merge_images(['../figures/subplots/fig06abcd_co_lsites_drift_wind_cusp.png',
+merge_images(['../figures/subplots/fig06abcd_co_lsites_drift_wind_cusp.jpg',
              '../figures/collaborators/Fig6_e_f_wind_floe_relationships_Jan30_Feb3.png'],
-             '../figures/fig06_lsites_windrel.png')
+             '../figures/fig06_lsites_windrel.jpg')

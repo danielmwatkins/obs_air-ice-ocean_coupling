@@ -101,7 +101,7 @@ era5_data['950_wind_speed'] = xr.Dataset({'wind_speed':
 plot_scale = 0.8e3 # Defines the figure size; units are kilometers
 fig, axs = pplt.subplots(width=6, nrows=2, ncols=2, share=True, span=False)
 
-idx_skip = 3
+idx_skip = 4
 plot_dates = ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']
 plot_dates = [pd.to_datetime(x) for x in plot_dates]
 
@@ -123,8 +123,8 @@ for date, ax in zip(plot_dates, axs):
     cbar1 = ax.contourf(local_x, local_y,
                         era5_data['theta_925'].sel(time=date)['theta_e'],
                         levels=np.arange(235, 285, 5),
-                        cmap='coolwarm', extend='both',
-                        alpha=0.85, cmap_kw={'cut': 0.1}, zorder=0)
+                        cmap='div', extend='both',
+                        alpha=0.65, cmap_kw={'cut': -0.1}, zorder=0, vmin=225, vmax=295)
     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                 levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2)
     
@@ -170,13 +170,13 @@ for date, ax in zip(plot_dates, axs):
 
     ax.plot(storm_track['x_stere']/1e3 - storm_track.loc[date, 'x_stere']/1e3,
             storm_track['y_stere']/1e3 - storm_track.loc[date, 'y_stere']/1e3,
-            color='gray1', lw=1, zorder=3, m='^', ms=1)
+            facecolor='gray1', lw=1, zorder=3, m='^', ms=2, edgecolor='gray8', c='gray8', ew=0.5)
 
-    wind_color = 'sea green'
+    wind_color = 'green9'
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                       color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
+                       color=[wind_color], ls='--', levels=[16], zorder=4, labels=False, lw=2)
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                       color=[wind_color], levels=[20], zorder=4, labels=False)
+                       color=[wind_color], levels=[20], zorder=4, labels=False, lw=2)
     
     ax.format(title=date, ylabel='Y (km)', xlabel='X (km)',
               xlim=(-plot_scale, plot_scale), ylim=(-plot_scale, plot_scale),
@@ -198,17 +198,20 @@ ax.add_collection(pc)
 
 # Generate legend manually for finer control
 h, l = [], []
-for c, ls, label in zip(['k', wind_color, wind_color, 'gray5'],
+for c, ls, label in zip(['k', wind_color, wind_color, 'gray8'],
                     ['-', '--', '-', '-'],
                     ['SLP (hPa)', '16 m/s wind', '20 m/s wind', 'Storm track']):
     if label == 'SLP (hPa)':
         lw = 1
     else:
         lw = 2
-    h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
+    if label == 'Storm track':
+        h.append(ax.plot([],[], color=c, facecolor='gray1', edgecolor=c, ew=0.5, m='^', ls=ls, lw=1))    
+    else:
+        h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
     l.append(label)
 axs[0].legend(h, l, loc='ul', alpha=1, ncols=1, fontsize=10) 
     
 fig.colorbar(cbar1, label='$\\Theta_e$ (K)', loc='r', length=0.75)
 fig.format(abc=True) # Adds abc labels
-fig.save('../figures/fig03_storm_centered.jpg', dpi=300)
+fig.save('../figures/fig03_storm_centered.png', dpi=300)

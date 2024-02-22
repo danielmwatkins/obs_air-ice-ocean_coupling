@@ -60,8 +60,8 @@ ts_A = slice('2020-01-30 20:00', '2020-02-02 02:00')
 ts_B = slice('2020-01-29 18:00', '2020-02-01 00:00')
 
 for ts, dates, title in zip([ts_A, ts_B], [zoom_plot_dates_A, zoom_plot_dates_B],
-                    ['../figures/subplots/fig07a_velocity_timeseries_ice_stereographic_uv.png',
-                     '../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.png']):
+                    ['../figures/subplots/fig08a_velocity_timeseries_ice_stereographic_uv.jpg',
+                     '../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.jpg']):
     fig, axs = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
     for var, ax in zip(['u', 'v', 'speed'], axs):
         for b in buoy_data:
@@ -195,9 +195,9 @@ pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
 for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_dates], 
-                               ['../figures/subplots/fig07b_snapshot_drift_and_wind.png',
-                                '../figures/subplots/figS1b_snapshot_drift_and_wind.png',
-                                '../figures/figSX_snapshot_drift_and_wind_analysis.png']):
+                               ['../figures/subplots/fig08b_snapshot_drift_and_wind.jpg',
+                                '../figures/subplots/figS1b_snapshot_drift_and_wind.jpg',
+                                '../figures/figSX_snapshot_drift_and_wind_analysis.jpg']):
     fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False, spanx=False)
     for date, ax in zip(dates, axs):
         x_dn = df_x.loc[date, co_buoy]
@@ -215,12 +215,12 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
     
         ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                     levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2, labels_kw = {'inline_spacing': -5})
-        wind_color = 'sea green'
+        wind_color = 'green8'
         
         ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                   color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
+                   color=[wind_color], ls='--', levels=[16], zorder=4, labels=False, lw=2.5)
         ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                   color=[wind_color], levels=[20], zorder=4, labels=False)
+                   color=[wind_color], levels=[20], zorder=4, labels=False, lw=2.5)
 
 
 
@@ -308,7 +308,7 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
             lw = 2
         h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
         l.append(label)        
-    axs[0].legend(h, l, loc='ur', ncols=1)    
+    axs[0].legend(h, l, loc='ur', ncols=1, alpha=1)    
     
     axs.format(xreverse=False, yreverse=False, xlocator=[-250, -125, 0, 125, 250], xrotation=89.99, # Weird bug - at 90, only some of the xlabels rotate
               ylocator=[-250, -125, 0, 125, 250])
@@ -318,35 +318,64 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
     fig.save(filename, dpi=300)
 
 
-"""Based on this stackoverflow response: https://stackoverflow.com/questions/30227466/combine-several-images-horizontally-with-python"""
+"""Based on this stackoverflow response: 
+https://stackoverflow.com/questions/30227466/combine-several-images-horizontally-with-python
+but modified a bit"""
 import sys
 from PIL import Image
 
-def merge_images(files, savename):
-    """Concatenates images horizontally"""
-    images = [Image.open(x) for x in files]
-    widths, heights = zip(*(i.size for i in images))
+# def merge_images(files, savename):
+#     """Concatenates images horizontally"""
+#     images = [Image.open(x) for x in files]
+#     widths, heights = zip(*(i.size for i in images))
     
+#     total_width = sum(widths)
+#     max_height = max(heights)
+    
+#     new_im = Image.new('RGB', (total_width, max_height))
+    
+#     x_offset = 0
+#     for im in images:
+#         new_im.paste(im, (x_offset,0))
+#         x_offset += im.size[0]
+    
+#     new_im.save(savename)
+
+def merge_images(files, savename):
+    """Concatenates images horizontally, adjusting for size"""
+    images = [Image.open(x) for x in files]
+    widths, heights = zip(*(i.size for i in images))    
     total_width = sum(widths)
     max_height = max(heights)
+    for idx in range(len(images)):
+        im = images[idx]
+        if im.size[1] != max_height:            
+            new_width = int(im.size[0]*(max_height/im.size[1]))
+            im = im.resize((new_width, max_height))
+            print(idx, max_height, new_width)
+        images[idx] = im
+        print(idx, im.size)
+        
+    widths, heights = zip(*(i.size for i in images))    
+    total_width = sum(widths)
+    max_height = max(heights)    
     
     new_im = Image.new('RGB', (total_width, max_height))
     
     x_offset = 0
     for im in images:
-        new_im.paste(im, (x_offset,0))
+        new_im.paste(im, (x_offset, 0))
         x_offset += im.size[0]
     
     new_im.save(savename)
 
-
-# Fig 7: Velocity
-merge_images(['../figures/subplots/fig07a_velocity_timeseries_ice_stereographic_uv.png',
+# Fig 8: Velocity
+merge_images(['../figures/subplots/fig08a_velocity_timeseries_ice_stereographic_uv.jpg',
              # '../figures/fig07b_snapshot_drift_and_wind.jpg',
-             '../figures/collaborators/Fig7d_g_frontal_isotach_analysis.png'],
-             '../figures/fig07_velocity.png')
+             '../figures/collaborators/Fig8_d_g_all_bouy_trajectories_new.png'],
+             '../figures/fig08_velocity.jpg')
 
-merge_images(['../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.png',
-              '../figures/subplots/figS1b_snapshot_drift_and_wind.png'],
-             '../figures/figS1_velocity.png')
+merge_images(['../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.jpg',
+              '../figures/subplots/figS1b_snapshot_drift_and_wind.jpg'],
+             '../figures/figS1_velocity.jpg')
 

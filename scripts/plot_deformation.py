@@ -24,7 +24,9 @@ ts_C1 = slice('2020-01-27 18:00', '2020-02-01 00:00')
 ts_C2 = slice('2020-01-30 20:00', '2020-02-02 02:00')
 
 zoom_plot_dates_C1 = [pd.to_datetime(x) for x in ['2020-01-29 23:00','2020-01-30 05:00', '2020-01-30 11:00', '2020-01-30 18:00']]
+
 zoom_plot_dates_C2 = [pd.to_datetime(x) for x in ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']]
+zoom_plot_dates_C2_large = [pd.to_datetime(x) for x in ['2020-01-31 18:00', '2020-02-01 1:00', '2020-02-01 07:00', '2020-02-01 10:00']]
 
 # These are used for coloring dots on the map
 # Smaller groups than the polygons
@@ -175,7 +177,7 @@ cases = {'C1_DN': {'polygons': ['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'D
                    'fignumber': '09',
                    'suffix': 'C2_large',
                    'time_slice': ts_C2,
-                   'zoom_times': zoom_plot_dates_C2,
+                   'zoom_times': zoom_plot_dates_C2_large,
                    'plot_winds': True,
                    'ylim': (-250, 250), 
                    'xlim': (-250, 250)                      
@@ -270,11 +272,11 @@ for case in cases:
             ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                         levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2, labels_kw = {'inline_spacing': -10})
 
-            wind_color = 'sea green'
+            wind_color = 'green8'
             ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                       color=[wind_color], ls='--', levels=[16], zorder=4, labels=False)
+                       color=[wind_color], ls='--', levels=[16], zorder=4, labels=False, lw=2.5)
             ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
-                       color=[wind_color], levels=[20], zorder=4, labels=False)
+                       color=[wind_color], levels=[20], zorder=4, labels=False, lw=2.5)
  
              
             ax.quiver(local_xu, local_yv,

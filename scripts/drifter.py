@@ -289,6 +289,7 @@ def standard_qc(buoy_df,
                 lat_range=(65, 90),
                 max_speed=1.5,
                 speed_window='3D',
+                speed_sigma=4,
                 verbose=False):
     """QC steps applied to all buoy data. Wrapper for functions in drifter.clean package.
     min_size = minimum number of observations
@@ -345,7 +346,7 @@ def standard_qc(buoy_df,
     
     
     # Check speed
-    flag_speed = check_speed(buoy_df, window=speed_window, max_speed=max_speed)
+    flag_speed = check_speed(buoy_df, window=speed_window, max_speed=max_speed, sigma=speed_sigma)
     buoy_df = buoy_df.loc[~flag_speed].copy()
 
     if len(buoy_df) < min_size:
@@ -499,11 +500,10 @@ def compute_strain_rate_components(buoys, data, position_uncertainty, time_delta
             
         var_ux = sigma_A**2/(4*A**4)*S1 + \
                  sigma_U**2/(4*A**2)*S2 + \
-                 sigma_X**2/(4*A**2)*S3       
-        
+                 sigma_X**2/(4*A**2)*S3
+
         return np.sqrt(var_ux)
 
-    
     def accel(X, U, A, sign):
         """Computes spatial derivative of velocity for 
         deformation."""

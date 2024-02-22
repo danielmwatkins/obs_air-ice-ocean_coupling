@@ -7,11 +7,12 @@ import os
 # Downloaded ADC data (cox et al. 2023)
 dataloc = '/Users/dwatkin2/Documents/research/data/mosaic_met_data/'
 saveloc = '../data/met_data/'
+startdate = 20200114
+enddate = 20200301
 for source in ['metcity', 'asfs40', 'asfs50', 'asfs30']:
-    files = os.listdir(dataloc + source + '/data/')
-    files = [f for f in files if f != '.DS_Store']
-
-    files = [f for f in files if (int(f.split('.')[-3]) > 20200114) & (int(f.split('.')[-3]) < 20200301)]
+    files = os.listdir(dataloc + source + '/data/')    
+    files = [f for f in files if '10min' in f]
+    files = [f for f in files if (int(f.split('.')[-3]) > startdate) & (int(f.split('.')[-3]) < enddate)]
     files.sort()
     
     dfs = []

@@ -17,8 +17,8 @@ dataloc = '../data/adc_dn_tracks/'
 saveloc = '../data/interpolated_tracks/'
 begin = '2020-01-25 00:00'
 end = '2020-02-05 00:00'
-max_interval = '3H'
-interp_freq = '30min'
+max_interval = '6H'
+interp_freq = '1h'
 min_coverage = 0.8 # Fraction of data required
 
 # List of reference buoys for L and M sites
@@ -83,27 +83,52 @@ for f in files:
                 if sensor_id in p_buoys:
                     n_pbuoys_with_sufficient_data += 1
                 buoy_data[sensor_id] = df.loc[t_idx]
+
 print('P-buoys with at least one observation', n_pbuoys_with_data)
 print('P-buoys exceeding minimum coverage', n_pbuoys_with_sufficient_data)
 #### Clean and interpolate data ####
 for sensor_id in buoy_data:
     df_qc = standard_qc(buoy_data[sensor_id],
-                        min_size=50, # min size actually handled already by the min_coverage * expected part
-                        gap_threshold='6H',        
+                        min_size=50, 
+                        gap_threshold=max_interval,        
                         segment_length=24,
                         lon_range=(-180, 180),
                         lat_range=(65, 90),
                         max_speed=1.5,
                         speed_window='3D',
-                        verbose=False)   
+                        speed_sigma=4,
+                        verbose=False)
+    
     # Interpolate to hourly
     # Need to add step in compute_velocity to allow for a different projection
     # Should work as long as there's an "x" and "y" in the columns
     # (specifically '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs')
+    manual_flag = {'2019P137': ['2020-01-26 02:30:00', 
+                                '2020-01-27 04:30:00'],
+                   '2019P138': ['2020-01-26 22:30:00'],
+                   '2019P139': ['2020-01-26 21:30:00'],
+                   '2019P148': ['2020-01-29 11:30:33']}
+    if sensor_id in manual_flag:
+        for time in manual_flag[sensor_id]:
+            time = pd.to_datetime(time)
+            if time in df_qc.index:
+                df_qc.loc[time, 'flag'] = True
+            else:
+                dt = pd.to_timedelta('1.5h')
+                if len(df_qc.loc[slice(time-dt, time+dt),:]) > 0:
+                    print(sensor_id)
+                    print(df_qc.loc[slice(time-dt, time+dt), 'flag'])
+                    df_qc.loc[slice(time-dt, time+dt), 'flag'] = True
+                
+                print(time, 'not in ', sensor_id, 'index')
+            
     if df_qc is not None:
-        df_interp = interpolate_buoy_track(df_qc.where(~df_qc.flag).dropna(), freq='30min', maxgap_minutes=240)
+        df_interp = interpolate_buoy_track(df_qc.where(~df_qc.flag).dropna(),
+                                           freq=interp_freq,
+                                           maxgap_minutes=pd.to_timedelta(max_interval).total_seconds()/60)
         proj_LL = 'epsg:4326' # WGS 84 Ellipsoid
-        proj_XY = '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs'
+        proj_XY = '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0' + \
+        ' +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs'
         transform_to_ps = pyproj.Transformer.from_crs(proj_LL, proj_XY, always_xy=True)
         x, y = transform_to_ps.transform(df_interp.longitude, df_interp.latitude)
         df_interp['x_stere'] = x
