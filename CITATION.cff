@@ -1,0 +1,27 @@
+cff-version: 0.1.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: Daniel
+  given-names: Wakins
+  orcid: https://orcid.org/0000-0003-3173-152X
+- family-names: Ola
+  given-names: Persson
+  orcid: https://orcid.org/0000-0002-6870-7470
+- family-names: Tim
+  given-names: Stanton
+  orcid: https://orcid.org/0000-0003-2808-3605
+- family-names: Amy
+  given-names: Solomon
+  orcid: https://orcid.org/0000-0002-8966-6727
+- family-names: Jennifer
+  given-names: Hutchings
+  orcid: https://orcid.org/0000-0003-1430-8236
+- family-names: Jari
+  given-names: Haapala
+  orcid: https://orcid.org/0000-0003-1155-3471
+- family-names: Gunilla
+  given-names: Svensson
+  orcid: https://orcid.org/0000-0001-9074-7623
+title: Code and data supporting "Air-Ice-Ocean Coupling During a Strong Mid-Winter Cyclone, Part 1: Observing Coupled Dynamic Interactions Across Scales"
+version: v0.1
+date-released: 2024-02-23
