@@ -120,8 +120,8 @@ for ax, setname, color in zip(axs, ['left', 'DN', 'right', 'distant'],
                         m='.', ms=2, zorder=0)
             
     dx = 60
-    if setname == 'distant':
-        dx = 60
+    # if setname == 'distant':
+    #     dx = 60
     title = setname
     if setname == 'DN':
         title = 'Distributed Network'
@@ -145,7 +145,7 @@ axs[1].scatter((speed_min.loc['2019T66', 'x_stere_b'] - x0)/1e3,
                marker='*', ms=150,
            vmin=-2, vmax=2, N=9, c=speed_min.loc['2019T66', 'offset_b'], cmap='bwr', zorder=5, edgecolor='k', ew=0.5)
 
-axs[1].text(55*np.cos(np.pi/4), 55*np.sin(np.pi/4), str(50) + ' km', color='gray') # DN
+axs[1].text(-67*np.cos(np.pi/4), -67*np.sin(np.pi/4), str(50) + ' km', color='gray') # DN
 axs[3].text(365*np.cos(np.deg2rad(-75)), 415*np.sin(np.deg2rad(-75)), str(400) + ' km', color='gray') # Distant
 axs[0].text(125*np.cos(np.deg2rad(160)), 125*np.sin(np.deg2rad(160)), str(100) + ' km', color='gray') # Left
 
@@ -154,6 +154,22 @@ axs[2].text(105*np.cos(np.deg2rad(-45)), 105*np.sin(np.deg2rad(-45)), str(100) +
 axs[1].colorbar(c, label='Time since Feb 1 00 UTC (Hours)') 
 axs.format(ylabel='Distance from CO, y-direction (km)', xlabel='Distance from CO, x-direction (km)',
            xlocator=20, ylocator=20, xtickminor=False, ytickminor=False, abc=True)
+
+
+# hours on the drift track
+for time in storm_track.index:    
+    x_adj = (storm_track.loc[time, 'x_stere'] - x0)/1e3
+    y_adj = (storm_track.loc[time, 'y_stere'] - y0)/1e3
+    for ax, setname in zip([axs[0], axs[1]], ['left', 'DN']):
+        xmin = centers[setname][0]/1e3 - dx
+        xmax = xmin + 2*dx
+        ymin = centers[setname][1]/1e3 - dx
+        ymax = ymin + 2*dx
+    
+        if (x_adj > xmin) & (x_adj < xmax):
+            if (y_adj > ymin) & (y_adj < ymax):
+                ax.text(x_adj + 2, y_adj + 2, str(time.hour).zfill(2), color='gray')
+
 
 
 # legends

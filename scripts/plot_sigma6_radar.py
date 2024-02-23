@@ -87,14 +87,7 @@ for ax, date in zip(axs, imdates):
               #     w=met_city_aligned.loc[date, 'wind_dir'],
               #     d=met_city_aligned.loc[date, 'ice_dir']),
               titlecolor='y')
-    # # This is wrong - fix it!
-    # theta = np.deg2rad(90 - met_city_aligned.loc[date, 'wind_dir'])
-    # h = 2
-    # ax.quiver(px, py, np.cos(theta)/h, -np.sin(theta)/h, color='cyan', zorder=2, scale=4)
     ax.quiver(px, py, uw[date]*0.02, vw[date]*0.02, color='cyan', zorder=2, scale=2, width=1/150, headwidth=8)
-    # theta = np.deg2rad(90 - met_city_aligned.loc[date, 'ice_dir'])
-    # h = 2
-    # ax.quiver(px, py, np.cos(theta)/h, -np.sin(theta)/h, color='m', zorder=2, scale=4)
     ax.quiver(px, py, ui[date], vi[date], color='m', zorder=2, scale=2, width=1/150, headwidth=8)
 
 

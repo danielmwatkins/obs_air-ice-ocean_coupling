@@ -103,25 +103,27 @@ for sensor_id in buoy_data:
     # Need to add step in compute_velocity to allow for a different projection
     # Should work as long as there's an "x" and "y" in the columns
     # (specifically '+proj=stere +lat_0=90 +lat_ts=70 +lon_0=90 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +type=crs')
-    manual_flag = {'2019P137': ['2020-01-26 02:30:00', 
-                                '2020-01-27 04:30:00'],
-                   '2019P138': ['2020-01-26 22:30:00'],
-                   '2019P139': ['2020-01-26 21:30:00'],
-                   '2019P148': ['2020-01-29 11:30:33']}
-    if sensor_id in manual_flag:
-        for time in manual_flag[sensor_id]:
-            time = pd.to_datetime(time)
-            if time in df_qc.index:
-                df_qc.loc[time, 'flag'] = True
-            else:
-                dt = pd.to_timedelta('1.5h')
-                if len(df_qc.loc[slice(time-dt, time+dt),:]) > 0:
-                    print(sensor_id)
-                    print(df_qc.loc[slice(time-dt, time+dt), 'flag'])
-                    df_qc.loc[slice(time-dt, time+dt), 'flag'] = True
+    # manual_flag = {'2019P137': ['2020-01-26 02:30:00', 
+    #                             '2020-01-27 04:30:00'],
+    #                '2019P138': ['2020-01-26 22:30:00'],
+    #                '2019P139': ['2020-01-26 21:30:00'],
+    #                '2019P148': ['2020-01-29 10:30:00',
+    #                             '2020-01-29 11:30:00',
+    #                             '2020-01-30 13:30:00']}
+    # if sensor_id in manual_flag:
+    #     for time in manual_flag[sensor_id]:
+    #         time = pd.to_datetime(time)
+    #         if time in df_qc.index:
+    #             df_qc.loc[time, 'flag'] = True
+    #         else:
+    #             dt = pd.to_timedelta('1.5h')
+    #             if len(df_qc.loc[slice(time-dt, time+dt),:]) > 0:
+    #                 print(sensor_id)
+    #                 print(df_qc.loc[slice(time-dt, time+dt), 'flag'])
+    #                 df_qc.loc[slice(time-dt, time+dt), 'flag'] = True
                 
-                print(time, 'not in ', sensor_id, 'index')
-            
+    #             print(time, 'not in ', sensor_id, 'index')
+    #         print(sensor_id, df_qc.loc[df_qc.flag])
     if df_qc is not None:
         df_interp = interpolate_buoy_track(df_qc.where(~df_qc.flag).dropna(),
                                            freq=interp_freq,

@@ -69,11 +69,9 @@ for idx, date in enumerate(images):
     
     py, px = im.index(met_city_aligned.loc[date, 'longitude'],
          met_city_aligned.loc[date, 'latitude'])
-    theta = np.deg2rad(met_city_aligned.loc[date, 'wind_dir'])
-    h = 2
-    ax.quiver(px, py, np.cos(theta)/h, -np.sin(theta)/h, color='cyan', zorder=2, scale=4)
-    theta = np.deg2rad(met_city_aligned.loc[date, 'ice_dir'])
-    ax.quiver(px, py, np.cos(theta)/h, -np.sin(theta)/h, color='m', zorder=2, scale=4)
+    ax.quiver(px, py, uw[date]*0.02, vw[date]*0.02, color='cyan', zorder=2, scale=1/2, width=1/150, headwidth=3)
+    ax.quiver(px, py, ui[date], vi[date], color='m', zorder=2, scale=1/2, width=1/150, headwidth=3)
+
 
     ax.format(ultitle=date.round('1min').strftime('%Y-%m-%d %H:%M') + \
               '\nWind: {w:.1f} m/s\nDrift: {d:.1f} cm/s'.format(
