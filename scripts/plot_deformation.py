@@ -50,14 +50,13 @@ s_track = s_track.loc[slice('2020-01-31 12:00', '2020-02-02 00:00')]
 
 # Manual front identification
 # Units are km from storm center
-sfc_cold_front = pd.read_csv('../data/sfc_cold_front_positions.csv', index_col=0)
-sfc_cold_front = {date: group for date, group in sfc_cold_front.groupby('date')}
-
-ele_cold_front = pd.read_csv('../data/ele_cold_front_positions.csv', index_col=0)
-ele_cold_front = {date: group for date, group in ele_cold_front.groupby('date')}
-
-warm_front = pd.read_csv('../data/warm_front_positions.csv', index_col=0)
-warm_front = {date: group for date, group in warm_front.groupby('date')}
+df = pd.read_csv('../data/fronts_relative_to_storm_track_zoomed.csv', parse_dates=True)
+fronts = {ftype: data for ftype, data in df.groupby('front_type')}
+for ftype in fronts:
+    fronts[ftype] = {pd.to_datetime(date): data[['x', 'y']].rolling(3, center=True, min_periods=0).mean() for date, data in fronts[ftype].groupby('datetime')}
+sfc_cold_front = fronts['sfc_cold_front']
+ele_cold_front = fronts['ele_cold_front']
+warm_front = fronts['sfc_warm_front']
 
 # Front position is relative to storm position - add s_track to be in stereographic
 for date in sfc_cold_front:
@@ -69,7 +68,7 @@ for date in ele_cold_front:
 for date in warm_front:
     warm_front[date]['x'] = warm_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
     warm_front[date]['y'] = warm_front[date]['y'] + s_track.loc[date, 'y_stere']/1e3
-    
+
 
 array_info = pd.read_csv('../data/array_info.csv')
 array_info = {array: group.set_index('buoyID') for array, group in array_info.groupby('array_name')}
@@ -171,7 +170,7 @@ def merge_images(files, savename):
 #### Plot groups ######
 # Each case to plot includes 
 cases = {'C1_DN': {'polygons': ['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'DN_4', 'DN_5'],
-                   'fignumber': 'S1',
+                   'fignumber': 'S2',
                    'suffix': 'C1_dn',
                    'time_slice': ts_C1,
                    'zoom_times': zoom_plot_dates_C1,
@@ -189,7 +188,7 @@ cases = {'C1_DN': {'polygons': ['DN_full', 'l_sites', 'DN_1', 'DN_2', 'DN_3', 'D
                    'xlim': (-55, 55)                   
                   },
          'C1_large': {'polygons': ['DN_full', 'left', 'right', 'l_sites'],
-                    'fignumber': 'S2',
+                    'fignumber': 'S3',
                     'suffix': 'C1_large',
                     'time_slice': ts_C1,
                     'zoom_times': zoom_plot_dates_C1,
@@ -332,12 +331,15 @@ for case in cases:
                         if color=='b':
                             ax.plot(front[date]['x'].values - x_dn,
                                 front[date]['y'].values - y_dn, color=color,
-                                ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=True)])                      
+                                ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=False)], zorder=10)                      
                         else:
                             ax.plot(front[date]['x'].values - x_dn,
                                 front[date]['y'].values - y_dn, color=color,
-                                ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)])
-            
+                                ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)], zorder=10)
+                    if (s_track.loc[date, 'x_stere']/1e3 - x_dn) < 250:
+                        ax.text(s_track.loc[date, 'x_stere']/1e3 - x_dn,
+                            s_track.loc[date, 'y_stere']/1e3 - y_dn, 'L',
+                                weight='bold', fontsize=20, zorder=60)
 
         else:
             # Plot velocity anomalies for all buoys
@@ -432,7 +434,7 @@ for case in cases:
                 lw = 2
             h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
             l.append(label)        
-        axs[0].legend(h, l, loc='ur', ncols=1)
+        axs[0].legend(h, l, loc='ur', ncols=1, alpha=1)
         
     fig.format(xreverse=False, yreverse=False)
     fig.save('../figures/subplots/' + title2, dpi=300)

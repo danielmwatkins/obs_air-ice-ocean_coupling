@@ -190,7 +190,7 @@ for date, ax in zip(plot_dates, axs):
               xlim=(-plot_scale, plot_scale), ylim=(-plot_scale, plot_scale),
               xticks=np.arange(-0.75e3, 0.8e3, 250), xtickminor=False, xrotation=90,
               yticks=np.arange(-0.75e3, 0.8e3, 250), ytickminor=False)
-    ax.text(0, 0, 'L', fontsize=15, weight='bold', zorder=10)
+    ax.text(-25, -25, 'L', fontsize=15, weight='bold', zorder=10)
 # Add fronts
 
 for color, ls, front in zip(['b', 'b', 'r'], ['-', '--', '-'],
@@ -200,11 +200,11 @@ for color, ls, front in zip(['b', 'b', 'r'], ['-', '--', '-'],
             if color=='b':
                 ax.plot(front[date]['x'].values,
                     front[date]['y'].values, color=color,
-                    ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=False)])                      
+                    ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=False)], zorder=10)                      
             else:
                 ax.plot(front[date]['x'].values,
                     front[date]['y'].values, color=color,
-                    ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)])
+                    ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)], zorder=10)
 
         ax.format(xreverse=False, yreverse=False)
 
