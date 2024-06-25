@@ -22,6 +22,7 @@ import pandas as pd
 import sys
 import warnings
 import xarray as xr
+from metpy.plots import ColdFront, WarmFront
 warnings.simplefilter('ignore')
 
 # Plot settings
@@ -38,6 +39,17 @@ buoy_dataloc = '../data/interpolated_tracks/'
 
 # Storm track generated in a different script
 storm_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True).dropna()    
+
+# Manual front identification
+# Units are km from storm center
+sfc_cold_front = pd.read_csv('../data/sfc_cold_front_positions.csv', index_col=0)
+sfc_cold_front = {date: group for date, group in sfc_cold_front.groupby('date')}
+
+ele_cold_front = pd.read_csv('../data/ele_cold_front_positions.csv', index_col=0)
+ele_cold_front = {date: group for date, group in ele_cold_front.groupby('date')}
+
+warm_front = pd.read_csv('../data/warm_front_positions.csv', index_col=0)
+warm_front = {date: group for date, group in warm_front.groupby('date')}
 
 ##### Load buoy data #####
 buoy_data = {}
@@ -123,8 +135,8 @@ for date, ax in zip(plot_dates, axs):
     cbar1 = ax.contourf(local_x, local_y,
                         era5_data['theta_925'].sel(time=date)['theta_e'],
                         levels=np.arange(235, 285, 5),
-                        cmap='div', extend='both',
-                        alpha=0.65, cmap_kw={'cut': -0.1}, zorder=0, vmin=225, vmax=295)
+                        cmap='BR', extend='both',
+                        alpha=0.35, cmap_kw={'cut': -0.1}, zorder=0, vmin=225, vmax=295)
     ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                 levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2)
     
@@ -172,7 +184,7 @@ for date, ax in zip(plot_dates, axs):
             storm_track['y_stere']/1e3 - storm_track.loc[date, 'y_stere']/1e3,
             facecolor='gray1', lw=1, zorder=3, m='^', ms=2, edgecolor='gray8', c='gray8', ew=0.5)
 
-    wind_color = 'green9'
+    wind_color = 'indigo'
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
                        color=[wind_color], ls='--', levels=[16], zorder=4, labels=False, lw=2)
     ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
@@ -182,6 +194,23 @@ for date, ax in zip(plot_dates, axs):
               xlim=(-plot_scale, plot_scale), ylim=(-plot_scale, plot_scale),
               xticks=np.arange(-0.75e3, 0.8e3, 250), xtickminor=False, xrotation=90,
               yticks=np.arange(-0.75e3, 0.8e3, 250), ytickminor=False)
+    ax.text(0, 0, 'L', fontsize=15, weight='bold', zorder=10)
+# Add fronts
+
+for color, ls, front in zip(['b', 'b', 'r'], ['-', '--', '-'],
+                        [sfc_cold_front, ele_cold_front, warm_front]):
+    for ax, date in zip(axs, front):
+        if len(front[date]['x']) == len(front[date]['y']):
+            if color=='b':
+                ax.plot(front[date]['x'].values,
+                    front[date]['y'].values, color=color,
+                    ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=True)])                      
+            else:
+                ax.plot(front[date]['x'].values,
+                    front[date]['y'].values, color=color,
+                    ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)])
+
+
 
 # Vector legend
 # Need to manually set the location
@@ -210,8 +239,8 @@ for c, ls, label in zip(['k', wind_color, wind_color, 'gray8'],
     else:
         h.append(ax.plot([],[],color=c,  ls=ls, lw=lw))
     l.append(label)
-axs[0].legend(h, l, loc='ul', alpha=1, ncols=1, fontsize=10) 
+axs[0].legend(h, l, loc='ul', alpha=1, ncols=1, fontsize=9) 
     
 fig.colorbar(cbar1, label='$\\Theta_e$ (K)', loc='r', length=0.75)
 fig.format(abc=True) # Adds abc labels
-fig.save('../figures/fig03_storm_centered.png', dpi=300)
+fig.save('../figures/fig03_storm_centered.jpg', dpi=300)

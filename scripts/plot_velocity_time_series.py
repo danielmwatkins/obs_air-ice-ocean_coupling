@@ -18,6 +18,7 @@ import metpy.calc as mcalc
 from metpy.units import units
 import sys
 import drifter
+from metpy.plots import ColdFront, WarmFront
 
 dataloc = '../data/interpolated_tracks/'
 era5_dataloc = '../data/era5_regridded/'
@@ -31,6 +32,33 @@ zoom_plot_dates_B = [pd.to_datetime(x) for x in zoom_plot_dates_B]
 
 cusp_plot_dates = ['2020-01-31 22:00', '2020-01-31 23:00', '2020-02-01 0:00', '2020-02-01 01:00']
 cusp_plot_dates = [pd.to_datetime(x) for x in cusp_plot_dates]
+
+
+s_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True)
+s_track = s_track.loc[slice('2020-01-31 12:00', '2020-02-02 00:00')]
+
+# Manual front identification
+# Units are km from storm center
+sfc_cold_front = pd.read_csv('../data/sfc_cold_front_positions.csv', index_col=0)
+sfc_cold_front = {pd.to_datetime(date): group for date, group in sfc_cold_front.groupby('date')}
+
+ele_cold_front = pd.read_csv('../data/ele_cold_front_positions.csv', index_col=0)
+ele_cold_front = {pd.to_datetime(date): group for date, group in ele_cold_front.groupby('date')}
+
+warm_front = pd.read_csv('../data/warm_front_positions.csv', index_col=0)
+warm_front = {pd.to_datetime(date): group for date, group in warm_front.groupby('date')}
+
+# Front position is relative to storm position - add s_track to be in stereographic
+for date in sfc_cold_front:
+    sfc_cold_front[date]['x'] = sfc_cold_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
+    sfc_cold_front[date]['y'] = sfc_cold_front[date]['y'] + s_track.loc[date, 'y_stere']/1e3
+for date in ele_cold_front:
+    ele_cold_front[date]['x'] = ele_cold_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
+    ele_cold_front[date]['y'] = ele_cold_front[date]['y'] + s_track.loc[date, 'y_stere']/1e3
+for date in warm_front:
+    warm_front[date]['x'] = warm_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
+    warm_front[date]['y'] = warm_front[date]['y'] + s_track.loc[date, 'y_stere']/1e3
+
 
 buoy_data = {}
 for f in os.listdir(dataloc):
@@ -215,7 +243,7 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
     
         ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                     levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2, labels_kw = {'inline_spacing': -5})
-        wind_color = 'green8'
+        wind_color = 'indigo'
         
         ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
                    color=[wind_color], ls='--', levels=[16], zorder=4, labels=False, lw=2.5)
@@ -229,7 +257,7 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
                   era5_data['v_stere'].sel(time=date)['v_stere'][::idx_skip, ::idx_skip],
                   scale=300, width=1/400, headwidth=4, color='tab:blue')
     
-        ax.format(title=date.strftime('%y-%m-%d %H:%M'), ylabel='Y (km)', xlabel='X (km)',
+        ax.format(title=date.strftime('%Y-%m-%d %H:%M'), ylabel='Y (km)', xlabel='X (km)',
               #lltitle='$P_{min}$: ' + str(int(np.round(storm_track.loc[date, 'center_mslp']/100,0))) + ' hPa',
              ylim=(-0.25e3, 0.25e3), xlim=(-0.25e3, 0.25e3),
               xticks=np.arange(-0.25e3, 0.26e3, 250), xtickminor=False, xrotation=90,
@@ -273,8 +301,28 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
                       df_v.loc[date, buoy_set]*100,
                       scale=300, headwidth=4, c = 'k',
                       zorder=6, width=1/250)            
-        
-#         ax.plot(storm_track['x_stere']/1e3 - x_dn,
+
+        for color, ls, front in zip(['b', 'b', 'r'], ['-', '--', '-'],
+                    [sfc_cold_front, ele_cold_front, warm_front]):
+            if date in front:
+                x_dn = df_x.loc[date, co_buoy]*1e-3
+                y_dn = df_y.loc[date, co_buoy]*1e-3
+                if len(front[date]['x']) == len(front[date]['y']):
+                    if color=='b':
+                        ax.plot(front[date]['x'].values - x_dn,
+                            front[date]['y'].values - y_dn, color=color,
+                            ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=True)])
+                        
+                    else:
+                        ax.plot(front[date]['x'].values - x_dn,
+                            front[date]['y'].values - y_dn, color=color,
+                            ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)])
+                    if (s_track.loc[date, 'x_stere']/1e3 - x_dn) < 250:
+                        ax.text(s_track.loc[date, 'x_stere']/1e3 - x_dn,
+                            s_track.loc[date, 'y_stere']/1e3 - y_dn, 'L',
+                                weight='bold', fontsize=20, zorder=60)
+    
+    #         ax.plot(storm_track['x_stere']/1e3 - x_dn,
 #                 storm_track['y_stere']/1e3 - y_dn,
 #                 color='gray', lw=1, zorder=0)
         
@@ -324,23 +372,6 @@ but modified a bit"""
 import sys
 from PIL import Image
 
-# def merge_images(files, savename):
-#     """Concatenates images horizontally"""
-#     images = [Image.open(x) for x in files]
-#     widths, heights = zip(*(i.size for i in images))
-    
-#     total_width = sum(widths)
-#     max_height = max(heights)
-    
-#     new_im = Image.new('RGB', (total_width, max_height))
-    
-#     x_offset = 0
-#     for im in images:
-#         new_im.paste(im, (x_offset,0))
-#         x_offset += im.size[0]
-    
-#     new_im.save(savename)
-
 def merge_images(files, savename):
     """Concatenates images horizontally, adjusting for size"""
     images = [Image.open(x) for x in files]
@@ -352,9 +383,9 @@ def merge_images(files, savename):
         if im.size[1] != max_height:            
             new_width = int(im.size[0]*(max_height/im.size[1]))
             im = im.resize((new_width, max_height))
-            print(idx, max_height, new_width)
+            # print(idx, max_height, new_width)
         images[idx] = im
-        print(idx, im.size)
+        # print(idx, im.size)
         
     widths, heights = zip(*(i.size for i in images))    
     total_width = sum(widths)
@@ -371,8 +402,8 @@ def merge_images(files, savename):
 
 # Fig 8: Velocity
 merge_images(['../figures/subplots/fig08a_velocity_timeseries_ice_stereographic_uv.jpg',
-             # '../figures/fig07b_snapshot_drift_and_wind.jpg',
-             '../figures/collaborators/Fig8_d_g_all_bouy_trajectories_new.png'],
+              '../figures/subplots/fig08b_snapshot_drift_and_wind.jpg'],
+             # '../figures/collaborators/Fig8_d_g_all_bouy_trajectories_new.png'],
              '../figures/fig08_velocity.jpg')
 
 merge_images(['../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.jpg',
