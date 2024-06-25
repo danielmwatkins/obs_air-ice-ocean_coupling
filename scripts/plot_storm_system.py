@@ -42,14 +42,10 @@ storm_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=Tr
 
 # Manual front identification
 # Units are km from storm center
-sfc_cold_front = pd.read_csv('../data/sfc_cold_front_positions.csv', index_col=0)
-sfc_cold_front = {date: group for date, group in sfc_cold_front.groupby('date')}
-
-ele_cold_front = pd.read_csv('../data/ele_cold_front_positions.csv', index_col=0)
-ele_cold_front = {date: group for date, group in ele_cold_front.groupby('date')}
-
-warm_front = pd.read_csv('../data/warm_front_positions.csv', index_col=0)
-warm_front = {date: group for date, group in warm_front.groupby('date')}
+df = pd.read_csv('../data/fronts_relative_to_storm_track.csv', parse_dates=True)
+fronts = {ftype: data for ftype, data in df.groupby('front_type')}
+for ftype in fronts:
+    fronts[ftype] = {date: data[['x', 'y']].rolling(3, center=True, min_periods=0).mean() for date, data in fronts[ftype].groupby('datetime')}
 
 ##### Load buoy data #####
 buoy_data = {}
@@ -198,19 +194,19 @@ for date, ax in zip(plot_dates, axs):
 # Add fronts
 
 for color, ls, front in zip(['b', 'b', 'r'], ['-', '--', '-'],
-                        [sfc_cold_front, ele_cold_front, warm_front]):
+                        [fronts['sfc_cold_front'], fronts['ele_cold_front'], fronts['sfc_warm_front']]):
     for ax, date in zip(axs, front):
         if len(front[date]['x']) == len(front[date]['y']):
             if color=='b':
                 ax.plot(front[date]['x'].values,
                     front[date]['y'].values, color=color,
-                    ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=True)])                      
+                    ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=False)])                      
             else:
                 ax.plot(front[date]['x'].values,
                     front[date]['y'].values, color=color,
                     ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)])
 
-
+        ax.format(xreverse=False, yreverse=False)
 
 # Vector legend
 # Need to manually set the location
@@ -244,3 +240,4 @@ axs[0].legend(h, l, loc='ul', alpha=1, ncols=1, fontsize=9)
 fig.colorbar(cbar1, label='$\\Theta_e$ (K)', loc='r', length=0.75)
 fig.format(abc=True) # Adds abc labels
 fig.save('../figures/fig03_storm_centered.jpg', dpi=300)
+fig.save('../figures/fig03_storm_centered.pdf', dpi=300)
