@@ -11,6 +11,7 @@ import sys
 from PIL import Image
 from matplotlib.patches import Rectangle
 from matplotlib.collections import PatchCollection
+from metpy.plots import ColdFront, WarmFront
 
 pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
@@ -26,7 +27,7 @@ ts_C2 = slice('2020-01-30 20:00', '2020-02-02 02:00')
 zoom_plot_dates_C1 = [pd.to_datetime(x) for x in ['2020-01-29 23:00','2020-01-30 05:00', '2020-01-30 11:00', '2020-01-30 18:00']]
 
 zoom_plot_dates_C2 = [pd.to_datetime(x) for x in ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']]
-zoom_plot_dates_C2_large = [pd.to_datetime(x) for x in ['2020-01-31 18:00', '2020-02-01 1:00', '2020-02-01 07:00', '2020-02-01 10:00']]
+zoom_plot_dates_C2_large = [pd.to_datetime(x) for x in ['2020-01-31 18:00', '2020-02-01 0:00', '2020-02-01 06:00', '2020-02-01 12:00']]
 
 # These are used for coloring dots on the map
 # Smaller groups than the polygons
@@ -46,6 +47,29 @@ site_specs = {'2019T67': ('tab:blue', 's', 7),
 
 s_track = pd.read_csv('../data/storm_track.csv', index_col=0, parse_dates=True)
 s_track = s_track.loc[slice('2020-01-31 12:00', '2020-02-02 00:00')]
+
+# Manual front identification
+# Units are km from storm center
+sfc_cold_front = pd.read_csv('../data/sfc_cold_front_positions.csv', index_col=0)
+sfc_cold_front = {date: group for date, group in sfc_cold_front.groupby('date')}
+
+ele_cold_front = pd.read_csv('../data/ele_cold_front_positions.csv', index_col=0)
+ele_cold_front = {date: group for date, group in ele_cold_front.groupby('date')}
+
+warm_front = pd.read_csv('../data/warm_front_positions.csv', index_col=0)
+warm_front = {date: group for date, group in warm_front.groupby('date')}
+
+# Front position is relative to storm position - add s_track to be in stereographic
+for date in sfc_cold_front:
+    sfc_cold_front[date]['x'] = sfc_cold_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
+    sfc_cold_front[date]['y'] = sfc_cold_front[date]['y'] + s_track.loc[date, 'y_stere']/1e3
+for date in ele_cold_front:
+    ele_cold_front[date]['x'] = ele_cold_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
+    ele_cold_front[date]['y'] = ele_cold_front[date]['y'] + s_track.loc[date, 'y_stere']/1e3
+for date in warm_front:
+    warm_front[date]['x'] = warm_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
+    warm_front[date]['y'] = warm_front[date]['y'] + s_track.loc[date, 'y_stere']/1e3
+    
 
 array_info = pd.read_csv('../data/array_info.csv')
 array_info = {array: group.set_index('buoyID') for array, group in array_info.groupby('array_name')}
@@ -272,7 +296,7 @@ for case in cases:
             ax.contour(local_x, local_y, era5_data['msl'].sel(time=date)['msl']/100, color='k',
                         levels=np.arange(972, 1020, 4), lw=1, labels=True, zorder=2, labels_kw = {'inline_spacing': -10})
 
-            wind_color = 'green8'
+            wind_color = 'indigo'
             ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
                        color=[wind_color], ls='--', levels=[16], zorder=4, labels=False, lw=2.5)
             ax.contour(local_x, local_y, era5_data['950_wind_speed'].sel(time=date)['wind_speed'],
@@ -298,6 +322,23 @@ for case in cases:
                   df_u.loc[date, plot_buoys]*100,
                   df_v.loc[date, plot_buoys]*100,
                   scale=300, headwidth=4, c = 'k', zorder=6, width=1/250)        
+
+            for color, ls, front in zip(['b', 'b', 'r'], ['-', '--', '-'],
+                        [sfc_cold_front, ele_cold_front, warm_front]):
+                for ax, date in zip(axs, front):
+                    x_dn = df_x.loc[date, co_buoy]*1e-3
+                    y_dn = df_y.loc[date, co_buoy]*1e-3
+                    if len(front[date]['x']) == len(front[date]['y']):
+                        if color=='b':
+                            ax.plot(front[date]['x'].values - x_dn,
+                                front[date]['y'].values - y_dn, color=color,
+                                ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=True)])                      
+                        else:
+                            ax.plot(front[date]['x'].values - x_dn,
+                                front[date]['y'].values - y_dn, color=color,
+                                ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)])
+            
+
         else:
             # Plot velocity anomalies for all buoys
             df_ua = df_u.loc[date, :] - df_u.loc[date, co_buoy]

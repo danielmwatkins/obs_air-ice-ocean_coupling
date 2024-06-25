@@ -135,3 +135,4 @@ for ax, date in zip(axs, dates):
 axs.format(abc=True)
 fig.colorbar(c, label='Sea level pressure (hPa)', loc='r', shrink=0.75)
 fig.save('../figures/fig02_slp_storms_overview.jpg', dpi=300)
+fig.save('../figures/fig02_slp_storms_overview.pdf', dpi=300)
