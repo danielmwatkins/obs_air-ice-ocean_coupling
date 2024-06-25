@@ -39,15 +39,13 @@ s_track = s_track.loc[slice('2020-01-31 12:00', '2020-02-02 00:00')]
 
 # Manual front identification
 # Units are km from storm center
-sfc_cold_front = pd.read_csv('../data/sfc_cold_front_positions.csv', index_col=0)
-sfc_cold_front = {pd.to_datetime(date): group for date, group in sfc_cold_front.groupby('date')}
-
-ele_cold_front = pd.read_csv('../data/ele_cold_front_positions.csv', index_col=0)
-ele_cold_front = {pd.to_datetime(date): group for date, group in ele_cold_front.groupby('date')}
-
-warm_front = pd.read_csv('../data/warm_front_positions.csv', index_col=0)
-warm_front = {pd.to_datetime(date): group for date, group in warm_front.groupby('date')}
-
+df = pd.read_csv('../data/fronts_relative_to_storm_track_zoomed.csv', parse_dates=True)
+fronts = {ftype: data for ftype, data in df.groupby('front_type')}
+for ftype in fronts:
+    fronts[ftype] = {pd.to_datetime(date): data[['x', 'y']].rolling(3, center=True, min_periods=0).mean() for date, data in fronts[ftype].groupby('datetime')}
+sfc_cold_front = fronts['sfc_cold_front']
+ele_cold_front = fronts['ele_cold_front']
+warm_front = fronts['sfc_warm_front']
 # Front position is relative to storm position - add s_track to be in stereographic
 for date in sfc_cold_front:
     sfc_cold_front[date]['x'] = sfc_cold_front[date]['x'] + s_track.loc[date, 'x_stere']/1e3
@@ -89,7 +87,7 @@ ts_B = slice('2020-01-29 18:00', '2020-02-01 00:00')
 
 for ts, dates, title in zip([ts_A, ts_B], [zoom_plot_dates_A, zoom_plot_dates_B],
                     ['../figures/subplots/fig08a_velocity_timeseries_ice_stereographic_uv.jpg',
-                     '../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.jpg']):
+                     '../figures/subplots/figS4a_velocity_timeseries_ice_stereographic_uv.jpg']):
     fig, axs = pplt.subplots(width=5, height=6, nrows=3, sharey=False)
     for var, ax in zip(['u', 'v', 'speed'], axs):
         for b in buoy_data:
@@ -222,10 +220,10 @@ l_colors = {'2019T67': 'tab:blue',
 pplt.rc['xtick.major.width'] = 0
 pplt.rc['ytick.major.width'] = 0
 
-for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_dates], 
+for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B], 
                                ['../figures/subplots/fig08b_snapshot_drift_and_wind.jpg',
-                                '../figures/subplots/figS1b_snapshot_drift_and_wind.jpg',
-                                '../figures/figSX_snapshot_drift_and_wind_analysis.jpg']):
+                                '../figures/subplots/figS4b_snapshot_drift_and_wind.jpg'
+                                ]):
     fig, axs = pplt.subplots(height=6, nrows=2, ncols=2, share=True, spany=False, spanx=False)
     for date, ax in zip(dates, axs):
         x_dn = df_x.loc[date, co_buoy]
@@ -304,6 +302,7 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
 
         for color, ls, front in zip(['b', 'b', 'r'], ['-', '--', '-'],
                     [sfc_cold_front, ele_cold_front, warm_front]):
+            
             if date in front:
                 x_dn = df_x.loc[date, co_buoy]*1e-3
                 y_dn = df_y.loc[date, co_buoy]*1e-3
@@ -311,17 +310,17 @@ for dates, filename in zip([zoom_plot_dates_A, zoom_plot_dates_B, cusp_plot_date
                     if color=='b':
                         ax.plot(front[date]['x'].values - x_dn,
                             front[date]['y'].values - y_dn, color=color,
-                            ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=True)])
+                            ls=ls, marker='', path_effects=[ColdFront(size=3, spacing=4, flip=False)], zorder=20)
                         
                     else:
                         ax.plot(front[date]['x'].values - x_dn,
                             front[date]['y'].values - y_dn, color=color,
-                            ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)])
+                            ls=ls, path_effects=[WarmFront(size=3, spacing=4, flip=False)], zorder=20)
                     if (s_track.loc[date, 'x_stere']/1e3 - x_dn) < 250:
                         ax.text(s_track.loc[date, 'x_stere']/1e3 - x_dn,
                             s_track.loc[date, 'y_stere']/1e3 - y_dn, 'L',
                                 weight='bold', fontsize=20, zorder=60)
-    
+
     #         ax.plot(storm_track['x_stere']/1e3 - x_dn,
 #                 storm_track['y_stere']/1e3 - y_dn,
 #                 color='gray', lw=1, zorder=0)
@@ -403,10 +402,9 @@ def merge_images(files, savename):
 # Fig 8: Velocity
 merge_images(['../figures/subplots/fig08a_velocity_timeseries_ice_stereographic_uv.jpg',
               '../figures/subplots/fig08b_snapshot_drift_and_wind.jpg'],
-             # '../figures/collaborators/Fig8_d_g_all_bouy_trajectories_new.png'],
              '../figures/fig08_velocity.jpg')
 
-merge_images(['../figures/subplots/figS1a_velocity_timeseries_ice_stereographic_uv.jpg',
-              '../figures/subplots/figS1b_snapshot_drift_and_wind.jpg'],
-             '../figures/figS1_velocity.jpg')
+merge_images(['../figures/subplots/figS4a_velocity_timeseries_ice_stereographic_uv.jpg',
+              '../figures/subplots/figS4b_snapshot_drift_and_wind.jpg'],
+             '../figures/figS4_velocity.jpg')
 
