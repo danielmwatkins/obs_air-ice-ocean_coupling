@@ -462,14 +462,15 @@ def compute_strain_rate_components(buoys, data, position_uncertainty, time_delta
         N = len(X)
         S = 0
         for i in range(N):
-            # the modulus here makes the calculation wrap around to the beginning
-            # could adjust the other codes to do this too
-            S += (X[(i+1) % N] - X[(i-1) % N])**2 +  (Y[(i+1) % N] - Y[(i-1) % N])**2
+            S += (X[(i+1) % N] - X[(i-1) % N])**2 + \
+                 (Y[(i+1) % N] - Y[(i-1) % N])**2
         return np.sqrt(0.25*position_uncertainty**2*S)
 
-    def gradvel_uncertainty(X, Y, U, V, A, position_uncertainty, time_delta, vel_var='u', x_var='x'):
-        """Equation 19 from Dierking et al. 2020 assuming uncertainty in position is same in both x and y.
-        Also assuming that there is no uncertainty in time. Default returns standard deviation
+    def gradvel_uncertainty(X, Y, U, V, A, position_uncertainty,
+                            time_delta, vel_var='u', x_var='x'):
+        """Equation 19 from Dierking et al. 2020 assuming uncertainty 
+        in position is same in both x and y. Also assuming that there
+        is no uncertainty in time. Default returns standard deviation
         uncertainty for dudx.
         """
         sigma_A = polygon_area_uncertainty(X, Y, position_uncertainty)
@@ -481,20 +482,19 @@ def compute_strain_rate_components(buoys, data, position_uncertainty, time_delta
         else:
             u = V.copy()
         if x_var == 'x':
-            # If you want dudx, integrate over Y
+            # To get dudx, integrate over Y
             x = Y.copy()
         else:
             x = X.copy()
         
         sigma_U = 2*sigma_X**2/time_delta**2
         
-        
         N = len(X)
         S1, S2, S3 = 0, 0, 0
         for i in range(N):
             # the modulus here makes the calculation wrap around to the beginning
-            # could adjust the other codes to do this too
-            S1 += (u[(i+1) % N] + u[(i-1) % N])**2 * (x[(i+1) % N] - x[(i-1) % N])**2
+            S1 += (u[(i+1) % N] + u[(i-1) % N])**2 * \
+                  (x[(i+1) % N] - x[(i-1) % N])**2
             S2 += (x[(i+1) % N] - x[(i-1) % N])**2
             S3 += (u[(i+1) % N] + u[(i-1) % N])**2
             
@@ -527,8 +527,8 @@ def compute_strain_rate_components(buoys, data, position_uncertainty, time_delta
     
     X_data = lon_data * np.nan
     Y_data = lon_data * np.nan
-    XA_data = lon_data * np.nan
-    YA_data = lon_data * np.nan
+    # XA_data = lon_data * np.nan
+    # YA_data = lon_data * np.nan
     U_data = lon_data * np.nan
     V_data = lon_data * np.nan    
     
@@ -536,13 +536,14 @@ def compute_strain_rate_components(buoys, data, position_uncertainty, time_delta
         lon = lon_data[buoy].values
         lat = lat_data[buoy].values
 
-        x, y = transformer_ps.transform(lon, lat)
+        # x, y = transformer_ps.transform(lon, lat)
+        x, y = transformer_laea.transform(lon, lat)
         X_data[buoy] = x
         Y_data[buoy] = y
         
-        xa, ya = transformer_laea.transform(lon, lat)
-        XA_data[buoy] = xa
-        YA_data[buoy] = ya
+        # xa, ya = transformer_laea.transform(lon, lat)
+        # XA_data[buoy] = xa
+        # YA_data[buoy] = ya
         
         buoy_df = pd.DataFrame({'longitude': lon,
                                 'latitude': lat,
@@ -554,26 +555,29 @@ def compute_strain_rate_components(buoys, data, position_uncertainty, time_delta
     
     X = X_data.T.values
     Y = Y_data.T.values
-    XA = XA_data.T.values
-    YA = YA_data.T.values        
+    # XA = XA_data.T.values
+    # YA = YA_data.T.values        
     U = U_data.T.values
     V = V_data.T.values
 
-    A = polygon_area(XA, YA)
-
+    # A = polygon_area(XA, YA)
+    A = polygon_area(X, Y)
+    
     # Check order of points
     # Can't handle reversal partway through though
     if np.all(A[~np.isnan(A)] < 0):
         print('Reversing order')
         X = X[::-1,:]
-        XA = XA[::-1,:]
+        # XA = XA[::-1,:]
         Y = Y[::-1,:]
-        YA = YA[::-1,:]
+        # YA = YA[::-1,:]
         U = U[::-1,:]
         V = V[::-1,:]
         
-    A = polygon_area(XA, YA)
 
+    # A = polygon_area(XA, YA)
+    A = polygon_area(X, Y)
+    
     dudx = accel(Y, U, A, 1)
     dudy = accel(X, U, A, -1)
     dvdx = accel(Y, V, A, 1)
